@@ -237,7 +237,7 @@ graph_collapse_b4 <- qgraph(collapse_corr_model2, fade = T, edge.labels = T,
                             edge.label.cex = 1.5, layout = "circle",
                             vsize = 5, vTrans = 260, theme = "colorblind",
                             title = "Collapsed Correlated Model 2")
-
+#This need to be changed eventually
 
 
 
