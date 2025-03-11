@@ -1,9 +1,4 @@
-.Rproj.user/CE6D7FE7/pcs/windowlayoutstate.pper
-.Rproj.user/CE6D7FE7/pcs/files-pane.pper
-.Rproj.user/CE6D7FE7/pcs/source-pane.pper
-.Rproj.user/CE6D7FE7/pcs/workbench-pane.pper
-.Rproj.user/CE6D7FE7/rmd-outputs
-.Rproj.user/CE6D7FE7/saved_source_markers
-.Rproj.user/CE6D7FE7/sources/prop/INDEX
-.Rproj.user/shared/notebooks/patch-chunk-names
-.Rproj.user/shared/notebooks/paths
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
