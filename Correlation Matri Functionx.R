@@ -3,55 +3,94 @@
 
 # Correlation Matrix Function ---------------------------------------------
 library(matrixcalc)
+EF <- 1
+nv <- 3
+edge.probability <- 0.8
 
-
-
-EF <- .5
-nv <- 4
-edge.probability <- 0.5
-
-
-flag = 0
 corr.gen = function(nv, EF, edge.probability){
+  flag = 0
   while(flag < 1){
     diag_mat <- diag(1,nv)
     off_diag_elements <- diag_mat[lower.tri(diag_mat)]
     n_elements <- length(off_diag_elements)
-    edge_vector <- rbinom(n = n_elements, size = 1, prob = edge.probability)
-    edge_vector <- replace(edge_vector, edge_vector == 1, EF)
+    edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
+                                 prob = edge.probability) == 1,
+                          sample(round(x = seq(-EF,EF, by = .05), 2),
+                                 size = n_elements), 0)
     diag_mat[lower.tri(diag_mat)] <- edge_vector
     diag_mat[upper.tri(diag_mat)] <- t(diag_mat)[upper.tri(diag_mat)]
     return(diag_mat)
-    if(is.positive.semi.definite(diag_mat) == T){
+    if(is.positive.semi.definite(diag_mat) == TRUE){
       flag = 1
     }
   }
 }
 
+corr.gen(nv, EF, edge.probability)
+
+#Add randomized correlation sampling from either uniform or random distribution
+#Everything is kinda relate in psychology we don't expect partial correlations 
+# to ever be exactly 0 unless we are inducing sparsity
+#lambda times generated matrix times transpose lambda + error 
+# think about what mijke said 
 
 
-# Check if the matrix you made is PSD; if so, set flag to 1 otherwise, flag stays 0 and keeps going
-
-
-
-
-
-
-flag = 0
-while(flag < 1){
-  sampled.value = rnorm(1, 0, 1)
-  print(sampled.value)
-  if(sampled.value > 3){
-    flag = 1
-  }
-}
-
-
-
+#Concept clincal aspect to node redundancy problem 
+#Replicability of network node redundancy across different datasets
+#Could we get different forms of redundancy?
  
 
 
+# Changing code for line "edge vectors" to one step -----------------------
 
+#Original
+edge_vector <- rbinom(n = n_elements, size = 1, prob = edge.probability)
+edge_vector <- replace(edge_vector, edge_vector == 1, EF)
+#Update
+edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
+                             prob = edge.probability) == 1,
+       sample(round(x = seq(-1,1, by = .05), 2), size = n_elements), 0)
+
+
+
+# Changing computational efficiency for PSD check -------------------------
+
+#Original
+if(is.positive.semi.definite(diag_mat) == TRUE)
+  
+#Update (This did not work)
+if(eigen(diag_mat, only.values = TRUE) >= 0)
+
+
+
+
+
+# Tasks -------------------------------------------------------------------
+#1) make more general, change -ef to ef to be rnorm(1, ef, .02)
+#2) Add eigen() update to corr.gen()
+
+
+
+
+# Helpful Tips ------------------------------------------------------------
+
+rbinom(n = 3, size = 1, prob = .5)
+#n is the # of observations (think samples) 
+#size is the # of trials (think how many trials in each sample)
+#p is probability of success
+
+sample(round(x = seq(-1,1, by = .05), 2), size = 3)
+#x is a vector of elements to choose
+#size gives the number of items to choose
+
+ifelse(rbinom(n = 3, size = 1, prob = .5) == 1,
+       sample(round(x = seq(-1,1, by = .05), 2), size = 3), 0)
+#test is a logical argument
+#Second argument will replace said value if logical statement is TRUE
+#Third argument will be resulting output if FALSE
+
+?rnorm()
+rnorm(n = 3, mean = 0, sd = 1)
 
 
 
