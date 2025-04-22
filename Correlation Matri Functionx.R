@@ -3,8 +3,8 @@
 
 # Correlation Matrix Function ---------------------------------------------
 library(matrixcalc)
-EF <- 1
-nv <- 3
+EF <- 1 #effective features
+nv <- 3 #number of variables 
 edge.probability <- 0.8
 
 corr.gen = function(nv, EF, edge.probability){
@@ -15,24 +15,21 @@ corr.gen = function(nv, EF, edge.probability){
     n_elements <- length(off_diag_elements)
     edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
                                  prob = edge.probability) == 1,
-                          sample(round(x = seq(-EF,EF, by = .05), 2),
-                                 size = n_elements), 0)
+                          round(rnorm(n_elements, mean = EF, sd = .2), 4), 0)
     diag_mat[lower.tri(diag_mat)] <- edge_vector
     diag_mat[upper.tri(diag_mat)] <- t(diag_mat)[upper.tri(diag_mat)]
     return(diag_mat)
-    if(is.positive.semi.definite(diag_mat) == TRUE){
+    if(min(eigen(diag_mat, only.values = TRUE)$values)>=0){
       flag = 1
     }
   }
 }
 
-corr.gen(nv, EF, edge.probability)
+corr.gen(nv = 3, EF = .5, edge.probability = .8)
 
 #Add randomized correlation sampling from either uniform or random distribution
 #Everything is kinda relate in psychology we don't expect partial correlations 
 # to ever be exactly 0 unless we are inducing sparsity
-#lambda times generated matrix times transpose lambda + error 
-# think about what mijke said 
 
 
 #Concept clincal aspect to node redundancy problem 
@@ -59,17 +56,20 @@ edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
 if(is.positive.semi.definite(diag_mat) == TRUE)
   
 #Update (This did not work)
-if(eigen(diag_mat, only.values = TRUE) >= 0)
+if(min(eigen(diag_mat, only.values = TRUE)$values) >= 0)
 
 
 
+# Changing sampling method  -----------------------------------------------
 
+#
+sample(round(x = seq(-EF,EF, by = .05), 2), size = n_elements)
+       
+n_elements <- 10
+round(rnorm(n_elements, mean = .5, sd = .2), 4)
 
 # Tasks -------------------------------------------------------------------
-#1) make more general, change -ef to ef to be rnorm(1, ef, .02)
-#2) Add eigen() update to corr.gen()
-
-
+#All done for 
 
 
 # Helpful Tips ------------------------------------------------------------
@@ -89,8 +89,10 @@ ifelse(rbinom(n = 3, size = 1, prob = .5) == 1,
 #Second argument will replace said value if logical statement is TRUE
 #Third argument will be resulting output if FALSE
 
-?rnorm()
-rnorm(n = 3, mean = 0, sd = 1)
+rnorm(n = 20, mean = 0.4, sd = .2)
+#n is the # of elements to sample 
+#The mean if values came from a normal distribution
+#The sd if values came from a normal distribution
 
 
 
