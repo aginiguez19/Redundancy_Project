@@ -3,8 +3,8 @@
 
 # Correlation Matrix Function ---------------------------------------------
 library(matrixcalc)
-EF <- 1 #effective features
-nv <- 3 #number of variables 
+EF <- 0 #effective features
+nv <- 10 #number of variables 
 edge.probability <- 0.8
 
 corr.gen = function(nv, EF, edge.probability){
@@ -15,27 +15,17 @@ corr.gen = function(nv, EF, edge.probability){
     n_elements <- length(off_diag_elements)
     edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
                                  prob = edge.probability) == 1,
-                          round(rnorm(n_elements, mean = EF, sd = .2), 4), 0)
+                          round(rnorm(n_elements, mean = EF, sd = .5), 4), 0)
     diag_mat[lower.tri(diag_mat)] <- edge_vector
     diag_mat[upper.tri(diag_mat)] <- t(diag_mat)[upper.tri(diag_mat)]
-    return(diag_mat)
     if(min(eigen(diag_mat, only.values = TRUE)$values)>=0){
       flag = 1
     }
   }
+  return(diag_mat)
 }
 
-corr.gen(nv = 3, EF = .5, edge.probability = .8)
-
-#Add randomized correlation sampling from either uniform or random distribution
-#Everything is kinda relate in psychology we don't expect partial correlations 
-# to ever be exactly 0 unless we are inducing sparsity
-
-
-#Concept clincal aspect to node redundancy problem 
-#Replicability of network node redundancy across different datasets
-#Could we get different forms of redundancy?
- 
+corr.gen(nv = 3, EF = 0, edge.probability = .5)
 
 
 # Changing code for line "edge vectors" to one step -----------------------
@@ -59,12 +49,12 @@ if(is.positive.semi.definite(diag_mat) == TRUE)
 if(min(eigen(diag_mat, only.values = TRUE)$values) >= 0)
 
 
-
 # Changing sampling method  -----------------------------------------------
 
-#
+#Orginal
 sample(round(x = seq(-EF,EF, by = .05), 2), size = n_elements)
-       
+
+#Update       
 n_elements <- 10
 round(rnorm(n_elements, mean = .5, sd = .2), 4)
 
