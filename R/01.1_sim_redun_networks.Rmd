@@ -16,6 +16,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(qgraph)
 library(igraph)
+source("Correlation Matrix Function.R")
+getwd()
 ```
 
 #### True Network:
@@ -68,6 +70,7 @@ lambda.matrix
 last.element <- nrow(lambda.matrix) * ncol(lambda.matrix) #Gives total # of elements 
 lambda.matrix[last.element] <- .9 #Since we want to change the last element, index by total # elements = last element in vector
 #Will be able to change as argument 
+lambda.matrix
 
 #Using lambda * psi * transpose of lambda we get the redudant matrix of the indicators 
 redun.mat <- lambda.matrix %*% true.mat %*% t(lambda.matrix)
@@ -77,7 +80,8 @@ redun.mat <- lambda.matrix %*% true.mat %*% t(lambda.matrix)
 #Measurement error aka theta
 dimensions.theta <- dim(redun.mat)
 
-theta <- diag(0, nrow = dimensions.theta[1], ncol = dimensions.theta[2])
+theta <- diag(.05, nrow = dimensions.theta[1], ncol = dimensions.theta[2])
+theta
 theta.last.element <- nrow(theta) * ncol(theta)
 theta[theta.last.element] <- .05
 
@@ -86,8 +90,7 @@ theta[theta.last.element] <- .05
 redun.mat <- redun.mat + theta
 
 
-pcor(redun.mat)
-qgraph(pcor(redun.mat), edge.labels = TRUE,
+qgraph(cor2pcor(redun.mat), edge.labels = TRUE,
                   edge.width = 2, layout = "circle",
                   asize = 5, vTrans = 260, theme = "colorblind",
                   title = "True Network")

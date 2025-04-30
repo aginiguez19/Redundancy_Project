@@ -2,12 +2,12 @@
 
 
 # Correlation Matrix Function ---------------------------------------------
-library(matrixcalc)
-EF <- 0 #effective features
-nv <- 10 #number of variables 
-edge.probability <- 0.8
 
-corr.gen = function(nv, EF, edge.probability){
+#EF = effective features
+#nv = number of variables 
+#edge.probability = probability of an edge
+
+corr_gen = function(nv, EF, edge.probability){
   flag = 0
   while(flag < 1){
     diag_mat <- diag(1,nv)
@@ -15,7 +15,7 @@ corr.gen = function(nv, EF, edge.probability){
     n_elements <- length(off_diag_elements)
     edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
                                  prob = edge.probability) == 1,
-                          round(rnorm(n_elements, mean = EF, sd = .5), 4), 0)
+                          round(rnorm(n_elements, mean = EF, sd = .05), 4), 0)
     diag_mat[lower.tri(diag_mat)] <- edge_vector
     diag_mat[upper.tri(diag_mat)] <- t(diag_mat)[upper.tri(diag_mat)]
     if(min(eigen(diag_mat, only.values = TRUE)$values)>=0){
@@ -25,7 +25,11 @@ corr.gen = function(nv, EF, edge.probability){
   return(diag_mat)
 }
 
-corr.gen(nv = 3, EF = 0, edge.probability = .5)
+
+
+#Specify EF to be negative or positive?
+#count number of negative edges present quantifying difference in edge weights
+corr_gen(nv = 3, EF = 0, edge.probability = .5)
 
 
 # Changing code for line "edge vectors" to one step -----------------------
@@ -41,11 +45,10 @@ edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
 
 
 # Changing computational efficiency for PSD check -------------------------
-
 #Original
 if(is.positive.semi.definite(diag_mat) == TRUE)
   
-#Update (This did not work)
+#Update
 if(min(eigen(diag_mat, only.values = TRUE)$values) >= 0)
 
 
@@ -55,15 +58,13 @@ if(min(eigen(diag_mat, only.values = TRUE)$values) >= 0)
 sample(round(x = seq(-EF,EF, by = .05), 2), size = n_elements)
 
 #Update       
-n_elements <- 10
 round(rnorm(n_elements, mean = .5, sd = .2), 4)
 
 # Tasks -------------------------------------------------------------------
-#All done for 
+#Check if sum of lower triangle is all 0 
 
 
 # Helpful Tips ------------------------------------------------------------
-
 rbinom(n = 3, size = 1, prob = .5)
 #n is the # of observations (think samples) 
 #size is the # of trials (think how many trials in each sample)
