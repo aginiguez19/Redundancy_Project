@@ -15,10 +15,11 @@ corr_gen = function(nv, EF, edge.probability){
     n_elements <- length(off_diag_elements)
     edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
                                  prob = edge.probability) == 1,
-                          round(rnorm(n_elements, mean = EF, sd = .05), 4), 0)
+                          round(rnorm(n_elements, mean = EF, sd = .25), 4), 0)
     diag_mat[lower.tri(diag_mat)] <- edge_vector
     diag_mat[upper.tri(diag_mat)] <- t(diag_mat)[upper.tri(diag_mat)]
-    if(min(eigen(diag_mat, only.values = TRUE)$values)>=0){
+    if(min(eigen(diag_mat, only.values = TRUE)$values)>=0 &
+       sum(diag_mat[lower.tri(diag_mat)]) != 0){
       flag = 1
     }
   }
@@ -27,13 +28,11 @@ corr_gen = function(nv, EF, edge.probability){
 
 
 
-#Specify EF to be negative or positive?
-#count number of negative edges present quantifying difference in edge weights
-corr_gen(nv = 3, EF = 0, edge.probability = .5)
+# Tasks -------------------------------------------------------------------
+#Nada
 
 
 # Changing code for line "edge vectors" to one step -----------------------
-
 #Original
 edge_vector <- rbinom(n = n_elements, size = 1, prob = edge.probability)
 edge_vector <- replace(edge_vector, edge_vector == 1, EF)
@@ -53,15 +52,21 @@ if(min(eigen(diag_mat, only.values = TRUE)$values) >= 0)
 
 
 # Changing sampling method  -----------------------------------------------
-
-#Orginal
+#Original
 sample(round(x = seq(-EF,EF, by = .05), 2), size = n_elements)
 
 #Update       
 round(rnorm(n_elements, mean = .5, sd = .2), 4)
 
-# Tasks -------------------------------------------------------------------
-#Check if sum of lower triangle is all 0 
+
+
+# Adding condition to if()  -------------------------------------------------------
+#Original
+#Nothing
+
+#Update
+sum(diag_mat[lower.tri(diag_mat)]) == 0
+
 
 
 # Helpful Tips ------------------------------------------------------------

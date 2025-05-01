@@ -16,8 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(qgraph)
 library(igraph)
-source("Correlation Matrix Function.R")
-getwd()
+source("00_correlation_matrix_function.R")
 ```
 
 #### True Network:
@@ -26,28 +25,28 @@ getwd()
 # Use corr.gen() function to obtain correlation matrix
 # nv = number of variables, EF = effective features of matrix
 # edge. probability = probability an edge is present or not
-true.mat <- corr.gen(nv = 3, EF = 0, edge.probability = .8)
+true_mat <- corr_gen(nv = 9, EF = 0, edge.probability = .8)
 
 
 # Take inverse of true.mat to obtain precision matrix
-true.precision <- solve(true.mat)
+true_precision <- solve(true_mat)
 
 
 # Convert precision matrix into partial correlation matrix
-true.pcor <- wi2net(true.precision)
+true_pcor <- wi2net(true_precision)
 
 #Turn process into a function
 cor2pcor <- function(matrix){
-  precision.mat <- solve(matrix)
-  pcor.mat <- wi2net(precision.mat)
-  return(pcor.mat)
+  precision_mat <- solve(matrix)
+  pcor_mat <- wi2net(precision_mat)
+  return(pcor_mat)
 }
 
 #Test
-true.pcor <- cor2pcor(true.mat)
+true_pcor <- cor2pcor(true_mat)
 
 
-qgraph(true.pcor, edge.labels = TRUE,
+qgraph(true_pcor, edge.labels = TRUE,
                   edge.width = 2, layout = "spring",
                   asize = 5, vTrans = 260, theme = "colorblind",
                   title = "True Network")
