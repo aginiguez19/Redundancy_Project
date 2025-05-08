@@ -15,7 +15,7 @@ corr_gen = function(nv, EF, edge.probability){
     n_elements <- length(off_diag_elements)
     edge_vector <- ifelse(rbinom(n = n_elements, size = 1,
                                  prob = edge.probability) == 1,
-                          round(rnorm(n_elements, mean = EF, sd = .25), 4), 0)
+                          round(rnorm(n_elements, mean = EF, sd = .05), 4), 0)
     diag_mat[lower.tri(diag_mat)] <- edge_vector
     diag_mat[upper.tri(diag_mat)] <- t(diag_mat)[upper.tri(diag_mat)]
     if(min(eigen(diag_mat, only.values = TRUE)$values)>=0 &

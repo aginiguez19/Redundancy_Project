@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Networks:
+# Network Test & Setup:
 
 ### Load Packages
 
@@ -19,13 +19,13 @@ library(igraph)
 source("00_correlation_matrix_function.R")
 ```
 
-#### True Network:
+#### True Network Test
 
 ```{r}
 # Use corr.gen() function to obtain correlation matrix
 # nv = number of variables, EF = effective features of matrix
 # edge. probability = probability an edge is present or not
-true_mat <- corr_gen(nv = 9, EF = 0, edge.probability = .8)
+true_mat <- corr_gen(nv = 4, EF = 0.5, edge.probability = .8)
 
 
 # Take inverse of true.mat to obtain precision matrix
@@ -34,7 +34,6 @@ true_precision <- solve(true_mat)
 
 # Convert precision matrix into partial correlation matrix
 true_pcor <- wi2net(true_precision)
-
 #Turn process into a function
 cor2pcor <- function(matrix){
   precision_mat <- solve(matrix)
@@ -42,70 +41,114 @@ cor2pcor <- function(matrix){
   return(pcor_mat)
 }
 
-#Test
-true_pcor <- cor2pcor(true_mat)
-
-
-qgraph(true_pcor, edge.labels = TRUE,
-                  edge.width = 2, layout = "spring",
-                  asize = 5, vTrans = 260, theme = "colorblind",
-                  title = "True Network")
-
+#Graph
+   qgraph(true_pcor, edge.labels = TRUE,
+                  edge.width = 2.5, layout = "spring",
+                  theme = "colorblind")
+ title("True Network", line = 2.5)
 
 ```
 
-#### Form 1: Highly correlated similar function
+#### Redun Network Test
 
-```{r}
-#Create Lambda Matrix depending on size of true network
+```{r, chunk-one, eval =FALSE}
+#Create Lambda Matrix depending on size of true network matrix
 
-#Extract dimensions of true network 
-dimensions <- dim(true.mat)
+#Extract dimensions of true network matrix
+dimensions <- dim(true_mat)
 
-#Set up lambda matrix to make possible, matrix multiplication of true network
-lambda.matrix <- diag(x = 1, nrow = dimensions[1] + 1 , ncol = dimensions[2])
-lambda.matrix
+#Set up lambda matrix to make possible, matrix multiplication, with true network matrix
+lambda_matrix <- diag(x = 1, nrow = dimensions[1] + 1 , ncol = dimensions[2])
+lambda_matrix
 #Code to change last element aka the factor loading on the same LV
-last.element <- nrow(lambda.matrix) * ncol(lambda.matrix) #Gives total # of elements 
-lambda.matrix[last.element] <- .9 #Since we want to change the last element, index by total # elements = last element in vector
+last_element <- nrow(lambda_matrix) * ncol(lambda_matrix) #Gives total # of elements 
+lambda_matrix[last_element] <- .9 #Since we want to change the last element, index by total # elements = last element in vector
 #Will be able to change as argument 
-lambda.matrix
+lambda_matrix
 
 #Using lambda * psi * transpose of lambda we get the redudant matrix of the indicators 
-redun.mat <- lambda.matrix %*% true.mat %*% t(lambda.matrix)
+redun_mat <- lambda_matrix %*% true_mat %*% t(lambda_matrix)
 
 
 
 #Measurement error aka theta
-dimensions.theta <- dim(redun.mat)
+dimensions_theta <- dim(redun_mat)
 
-theta <- diag(.05, nrow = dimensions.theta[1], ncol = dimensions.theta[2])
-theta
-theta.last.element <- nrow(theta) * ncol(theta)
-theta[theta.last.element] <- .05
+theta <- diag(-.05, nrow = dimensions_theta[1], ncol = dimensions_theta[2])
 
 
 #Add error to redun.mat
-redun.mat <- redun.mat + theta
+redun_mat <- redun_mat + theta
+redun_mat
 
-
-qgraph(cor2pcor(redun.mat), edge.labels = TRUE,
+qgraph(cor2pcor(redun_mat), edge.labels = TRUE,
                   edge.width = 2, layout = "circle",
-                  asize = 5, vTrans = 260, theme = "colorblind",
+                  asize = 5, vTrans = 200, theme = "colorblind",
                   title = "True Network")
-
-
 
 
 
 
 #Some interesting things
-
 #Wrapping a matrix with c() will flatten it into a vector
-c(lambda.matrix)
+c(lambda_matrix)
 
 #Gives you the last element
-tail(c(lambda.matrix), 1)
+tail(c(lambda_matrix), 1)
 
+#For loop practice
+mat <- matrix(rnorm(100), ncol = 5)
+par(mfrow = c(2,3))
+for (i in 1:5){
+  hist(x = mat[,i], main = paste("Distribution", i), xlab = "X Values", col = "firebrick")
+}
+
+#Function to obtain HCSD redundant corr matrix
+hcsf <- function(matrix, value){
+  #Lambda
+  dimensions <- dim(matrix)
+  lambda_matrix <- diag(x = 1, nrow = dimensions[1] + 1 , ncol = dimensions[2])
+  last_element <- nrow(lambda_matrix) * ncol(lambda_matrix)
+  lambda_matrix[last_element] <- value 
+  redun_mat <- lambda_matrix %*% true_mat %*% t(lambda_matrix)
+  #Theta
+  dimensions_theta <- dim(redun_mat)
+  theta <- diag(.05, nrow = dimensions_theta[1], ncol = dimensions_theta[2])
+  redun_mat <- redun_mat + theta
+  return(redun_mat)
+}
 
 ```
+
+### Form 1: HCSF
+
+```{r, cor2pcor, eval = TRUE}
+#Functions needed
+#corr_gen() ~ Obtain true network corr matrix
+#cor2pcor() ~ Move from corr matrix to pcor matrix
+#hcsf() ~ Obtain redundant corr matrix that is highly correlated &same function
+
+
+metrics <- data.frame(matrix(NA, nrow = 30, ncol = 4, byrow = TRUE))
+
+
+for (i in 1:30){
+  true_mat <- corr_gen(nv = 4, EF = .5, edge.probability = .9)
+  true_pcor <- cor2pcor(true_mat)
+  true_qg <- qgraph(true_pcor)
+  true_g <- as.igraph(qg)
+  strength_true <- strength(true_g)
+  redun_mat <- hcsf(matrix = true_mat, value = .9)
+  redun_pcor <- cor2pcor(redun_mat)
+  redunf1_qg <- qgraph(redun_pcor)
+  redunf1_g <- as.igraph(redunf1_qg)
+  strength_redunf1 <- strength(redunf1_g)
+  metrics[i,] <- (strength_true - strength_redunf1[1:4])
+}
+
+colMeans(metrics)
+```
+
+
+
+
