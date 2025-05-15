@@ -52,7 +52,7 @@ graph_b <- qgraph(model_b, edge.labels = TRUE, fade = T,
 
 groups <- list(Original = c(2,3,4), Redundant = c(1,5))
 
-
+groups2 <- list(Original = c(2,3,4), Collapsed = c(1))
 
 
 legend(x = "topright", inset = c(0, 0), bty = "n", legend = c("Original Nodes",
@@ -75,6 +75,7 @@ model_c
 graph_c <- qgraph(model_c, edge.labels = TRUE,
                   edge.label.cex = 1.5, layout = "circle",
                   vsize = 10, vTrans = 260,
+                  groups = groups,
                   title = "P+1 Uncorrelated Model",
                   theme = "colorblind")
 
@@ -92,8 +93,10 @@ rand_mat <- rbind(rand_mat, copy_4)
 model_d <- pcor(rand_mat)
 graph_d <- qgraph(model_d, edge.labels = TRUE, labels = 1:5,
                   edge.label.cex = 1.5, layout = "circle",
+                  groups = groups,
                   vsize = 10, vTrans = 260,
-                  title = "P+1 Random Model")
+                  title = "P+1 Random Model",
+                  theme = "colorblind")
 
 #Collapse redundant Matrix
 a <- matrix(c(1, 0, 0, 0, 1,
@@ -106,7 +109,9 @@ collapse_model <- pcor(collapse_mat)
 graph_collapse <- qgraph(collapse_model, fade = T, edge.labels = TRUE,
                          edge.label.cex = 1.5, layout = "circle",
                          vsize = 10, vTrans = 260,
-                         title = "Collapsed Redundant Model")
+                         groups = groups2,
+                         title = "Collapsed P + 1 Redundant Model",
+                         theme = "colorblind")
 
 
 #Collapse uncorrelated redundant matrix
@@ -115,7 +120,9 @@ collapse_uncor_model <- pcor(collapse_mat_uncor)
 graph_collapse_b <- qgraph(collapse_uncor_model, fade = T, edge.labels = T,
                            edge.label.cex = 1.5, layout = "circle",
                            vsize = 10, vTrans = 260,
-                           title = "Collapsed Uncorrelated Model")
+                           theme = "colorblind",
+                           groups = groups2,
+                           title = "Collapsed P + 1 Uncorrelated Model")
 
 
 
