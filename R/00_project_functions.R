@@ -32,6 +32,7 @@ corr_gen = function(nv, EF, edge.probability){
 cor2pcor <- function(matrix){
   precision_mat <- solve(matrix)
   pcor_mat <- wi2net(precision_mat)
+  pcor_mat <- as.matrix(pcor_mat)
   return(pcor_mat)
 }
 
