@@ -1,0 +1,97 @@
+---
+title: "Plots"
+author: "Abraham Iñiguez"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load Packages
+```{r message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(matrixStats)
+```
+
+
+### HCSF plots
+
+```{r}
+
+hcsf_df <- data.frame(
+ mean = c(
+    colMeans(metrics[,,"strength"]),
+    colMeans(na.omit((metrics[,, "closeness"]))),
+    colMeans(na.omit((metrics[,, "betweenness"])))),
+  sd = c(colSds(metrics[,,"strength"]),
+         colSds(na.omit((metrics[,, "closeness"]))),
+         colSds(na.omit((metrics[,, "betweenness"])))),
+  group = c("avg_node1_3","node4"),
+  metric = rep(c("Strength", "Closeness", "Betweenness"), each = 2)
+)
+
+hcsf_df
+## Strength ##
+jpeg("03.1_plots_output/Strength Comparison HCSF.jpg", width= 12,
+     height= 6, res=800, units="in")
+ggplot(data = hcsf_df[1:2, ],
+       aes(x = group, y = mean, fill = metric)) +
+  geom_crossbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.4) +
+  scale_x_discrete(labels = c("avg_node1_3" = "Peripheral", "node4" = "Target")) +
+  labs(title = "Average Change Between True and Redundant Network",
+       y = "Strength",
+       x = "Node(s)") + 
+  theme_light() +
+  theme(legend.position = "none")
+dev.off()
+
+## Closeness ##
+jpeg("03.1_plots_output/Closeness Comparison HCSF.jpg", width= 12,
+     height= 6, res=800, units="in")
+ggplot(data = hcsf_df[3:4,1:4],
+       aes(x = group, fill = metric)) +
+  geom_boxplot(aes(lower=mean-sd,
+                   upper=mean+sd,
+                   middle=mean,
+                   ymin=mean-3*sd,
+                   ymax=mean+3*sd),
+               stat="identity") +
+  scale_x_discrete(labels = c("avg_node1_3"= "Peripheral", "node4" = "Target"))+
+  labs(title = "Average Change Between True and Redundant Network",
+        y = "Closeness",
+        x = "Node(s)") + 
+  theme_light() +
+  theme(legend.position = "none")
+dev.off()
+
+## Betweenness ## 
+jpeg("03.1_plots_output/Betweenness Comparison HCSF.jpg", width= 12,
+     height= 6, res=800, units="in")
+ggplot(data = hcsf_df[5:6,1:4],
+       aes(x = group, fill = metric)) +
+  geom_boxplot(aes(lower=mean-sd,
+                   upper=mean+sd,
+                   middle=mean,
+                   ymin=mean-3*sd,
+                   ymax=mean+3*sd),
+               stat="identity") +
+  scale_x_discrete(labels = c("avg_node1_3" = "Peripheral", "node4" = "Target"))+
+  labs(title = "Average Change Between True and Redundant Network",
+        y = "Betweenness",
+        x = "Node(s)") + 
+  theme_light() +
+  theme(legend.position = "none")
+dev.off()
+```
+
+```{r}
+plot(metrics[,"node4","betweenness"], metrics[,"node4","closeness"])
+plot(metrics[,"node4","closeness"], metrics[,"node4","strength"])
+plot(metrics[,"avg_node1_3","closeness"], metrics[,"avg_node1_3","strength"])
+
+
+```
+

@@ -33,21 +33,21 @@ true_pcor <- cor2pcor(true_mat)
                   edge.width = 2.5, layout = "spring",
                   theme = "colorblind")
  title("True Network", line = 2.5)
-
 ```
 
 ### Form 1: HCSF
 
-```{r, cor2pcor, eval = TRUE}
+```{r}
 # Functions needed
 # corr_gen() ~ Obtain true network corr matrix
 # cor2pcor() ~ Move from corr matrix to pcor matrix
 # hcsf() ~ Obtain redundant corr matrix that is highly correlated & same function
 
 
-metrics <- array(NA, dim = c(1000, 2, 2),
+metrics <- array(NA, dim = c(1000, 2, 3),
                  dimnames = list(NULL, c("avg_node1_3", "node4"),
-                                       c("strength", "closeness")))
+                                       c("strength", "closeness",
+                                         "betweenness")))
 
 for (i in 1:1000){
   true_mat <- corr_gen(nv = 4, EF = .5, edge.probability = .9)
@@ -55,11 +55,13 @@ for (i in 1:1000){
   redun_subset <- redun_mat[1:4, 1:4]
   redun_pcor_subset <- cor2pcor(redun_subset)
   redun_pcor <- cor2pcor(redun_mat)
+  
   g_subset <- graph_from_adjacency_matrix(redun_pcor_subset,
                                           mode = "undirected",
                                           weighted = TRUE)
- g_full <- graph_from_adjacency_matrix(redun_pcor,mode = "undirected",
-                                       weighted = TRUE)
+  g_full <- graph_from_adjacency_matrix(redun_pcor,
+                                        mode = "undirected",
+                                        weighted = TRUE)
  ## Strength ##
  strength_subset <- strength(g_subset)
  strength_full <- strength(g_full)
@@ -73,9 +75,25 @@ for (i in 1:1000){
   avg_node1_3_c <- mean(closeness_full[1:3] - closeness_subset[1:3])
   node4_c <- closeness_full[4] - closeness_subset[4]
   metrics[i,,"closeness"] <- c(avg_node1_3_c, node4_c)
+  
+  ## Betweenness ## 
+  betweenness_subset <- betweenness(g_subset,
+                                   weights = 1/abs(E(g_subset)$weight))
+  betweenness_full <- betweenness(g_full, weights = 1/abs(E(g_full)$weight))
+  avg_node1_3_b <- mean(betweenness_full[1:3] - betweenness_subset[1:3])
+  node4_b <- betweenness_full[4] - betweenness_subset[4]
+  metrics[i,,"betweenness"] <- c(avg_node1_3_b, node4_b)
 }
 
-metrics[,,"closeness"]
+```
+
+
+
+### Form 2: HCDF
+
+```{r}
+# Check weights argument input for betweenness and closeness
+
 ```
 
 

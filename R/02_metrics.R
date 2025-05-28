@@ -19,8 +19,6 @@ centralityPlot(list(Original = graph_a2, Redundant =  graph_b2,
                     Uncorrelated.Collapsed = graph_collapse_b2,
                    Correlated.Collapsed = graph_collapse_b4),
                include = c("Strength", "Closeness"))
-#Make different shapes
-
 
 ?centralityPlot
 #Density

@@ -57,6 +57,9 @@ hcsf <- function(matrix, loading = .9){
 }
 
 
+# Form 2 HCDF Function ----------------------------------------------------
+
+
 
 
 
