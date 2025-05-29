@@ -38,8 +38,9 @@ hcsf_df
 jpeg("03.1_plots_output/Strength Comparison HCSF.jpg", width= 12,
      height= 6, res=800, units="in")
 ggplot(data = hcsf_df[1:2, ],
-       aes(x = group, y = mean, fill = metric)) +
-  geom_crossbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.4) +
+       aes(x = group, y = mean)) +
+  geom_bar(stat = "identity", fill = c("#002855", "#B3A369")) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2) +
   scale_x_discrete(labels = c("avg_node1_3" = "Peripheral", "node4" = "Target")) +
   labs(title = "Average Change Between True and Redundant Network",
        y = "Strength",
@@ -52,14 +53,10 @@ dev.off()
 jpeg("03.1_plots_output/Closeness Comparison HCSF.jpg", width= 12,
      height= 6, res=800, units="in")
 ggplot(data = hcsf_df[3:4,1:4],
-       aes(x = group, fill = metric)) +
-  geom_boxplot(aes(lower=mean-sd,
-                   upper=mean+sd,
-                   middle=mean,
-                   ymin=mean-3*sd,
-                   ymax=mean+3*sd),
-               stat="identity") +
-  scale_x_discrete(labels = c("avg_node1_3"= "Peripheral", "node4" = "Target"))+
+       aes(x = group, y = mean)) +
+  geom_bar(stat = "identity", fill = c("#002855", "#B3A369")) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2) +
+  scale_x_discrete(labels = c("avg_node1_3"= "Peripheral", "node4" = "Target")) +
   labs(title = "Average Change Between True and Redundant Network",
         y = "Closeness",
         x = "Node(s)") + 
@@ -67,17 +64,14 @@ ggplot(data = hcsf_df[3:4,1:4],
   theme(legend.position = "none")
 dev.off()
 
+
 ## Betweenness ## 
 jpeg("03.1_plots_output/Betweenness Comparison HCSF.jpg", width= 12,
      height= 6, res=800, units="in")
 ggplot(data = hcsf_df[5:6,1:4],
-       aes(x = group, fill = metric)) +
-  geom_boxplot(aes(lower=mean-sd,
-                   upper=mean+sd,
-                   middle=mean,
-                   ymin=mean-3*sd,
-                   ymax=mean+3*sd),
-               stat="identity") +
+       aes(x = group, y = mean)) +
+  geom_bar(stat = "identity", fill = c("#002855", "#B3A369")) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean = sd), width = .2)+
   scale_x_discrete(labels = c("avg_node1_3" = "Peripheral", "node4" = "Target"))+
   labs(title = "Average Change Between True and Redundant Network",
         y = "Betweenness",
