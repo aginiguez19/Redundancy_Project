@@ -19,73 +19,142 @@ library(matrixStats)
 
 ### HCSF plots
 
-```{r}
-
+```{r echo = FALSE}
 hcsf_df <- data.frame(
  mean = c(
-    colMeans(metrics[,,"strength"]),
-    colMeans(na.omit((metrics[,, "closeness"]))),
-    colMeans(na.omit((metrics[,, "betweenness"])))),
-  sd = c(colSds(metrics[,,"strength"]),
-         colSds(na.omit((metrics[,, "closeness"]))),
-         colSds(na.omit((metrics[,, "betweenness"])))),
-  group = c("avg_node1_3","node4"),
+    colMeans(metrics[,10:11,"strength"]),
+    colMeans(na.omit((metrics[,10:11, "closeness"]))),
+    colMeans(na.omit((metrics[,10:11, "betweenness"])))),
+  sd = c(colSds(metrics[,10:11,"strength"]),
+         colSds(na.omit((metrics[,10:11, "closeness"]))),
+         colSds(na.omit((metrics[,10:11, "betweenness"])))),
+  group = c("peripheral_change","target_change"),
   metric = rep(c("Strength", "Closeness", "Betweenness"), each = 2)
 )
 
 hcsf_df
 ## Strength ##
-jpeg("03.1_plots_output/Strength Comparison HCSF.jpg", width= 12,
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Strength Comparison HCSF.jpg", width= 12,
      height= 6, res=800, units="in")
 ggplot(data = hcsf_df[1:2, ],
        aes(x = group, y = mean)) +
   geom_bar(stat = "identity", fill = c("#002855", "#B3A369")) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2) +
   scale_x_discrete(labels = c("avg_node1_3" = "Peripheral", "node4" = "Target")) +
-  labs(title = "Average Change Between True and Redundant Network",
-       y = "Strength",
+  labs(y = "Strength",
        x = "Node(s)") + 
   theme_light() +
   theme(legend.position = "none")
 dev.off()
 
 ## Closeness ##
-jpeg("03.1_plots_output/Closeness Comparison HCSF.jpg", width= 12,
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Closeness Comparison HCSF.jpg", width= 12,
      height= 6, res=800, units="in")
 ggplot(data = hcsf_df[3:4,1:4],
        aes(x = group, y = mean)) +
   geom_bar(stat = "identity", fill = c("#002855", "#B3A369")) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2) +
   scale_x_discrete(labels = c("avg_node1_3"= "Peripheral", "node4" = "Target")) +
-  labs(title = "Average Change Between True and Redundant Network",
-        y = "Closeness",
-        x = "Node(s)") + 
+  labs(y = "Closeness",
+       x = "Node(s)") + 
   theme_light() +
   theme(legend.position = "none")
 dev.off()
 
 
 ## Betweenness ## 
-jpeg("03.1_plots_output/Betweenness Comparison HCSF.jpg", width= 12,
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Betweenness Comparison HCSF.jpg", width= 12,
      height= 6, res=800, units="in")
 ggplot(data = hcsf_df[5:6,1:4],
        aes(x = group, y = mean)) +
   geom_bar(stat = "identity", fill = c("#002855", "#B3A369")) +
-  geom_errorbar(aes(ymin = mean - sd, ymax = mean = sd), width = .2)+
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2)+
   scale_x_discrete(labels = c("avg_node1_3" = "Peripheral", "node4" = "Target"))+
-  labs(title = "Average Change Between True and Redundant Network",
-        y = "Betweenness",
-        x = "Node(s)") + 
+  labs(y = "Betweenness",
+       x = "Node(s)") + 
   theme_light() +
   theme(legend.position = "none")
 dev.off()
 ```
 
-```{r}
+```{r include = FALSE}
 plot(metrics[,"node4","betweenness"], metrics[,"node4","closeness"])
 plot(metrics[,"node4","closeness"], metrics[,"node4","strength"])
 plot(metrics[,"avg_node1_3","closeness"], metrics[,"avg_node1_3","strength"])
 
+
+```
+
+#### Violin Plots
+
+```{r echo = FALSE}
+
+## Strength ##
+df <- data.frame(metrics[,1:8, "strength"])
+true_long <- stack(df[1:4])
+true_long$group <- "true"
+true_long
+
+redundant_long <- stack(df[5:8])
+redundant_long$group <- "redundant"
+redundant_long
+
+violin_df <- rbind(true_long, redundant_long)
+colnames(violin_df) <- c("strength", "node", "network")
+head(violin_df)
+
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Strength Violin Plot HCSF.jpg", width= 12, height= 6, res=800, units="in")
+ggplot(violin_df, aes(x = network, y = strength)) +
+  geom_violin(aes(fill = network), alpha = .5,
+              show.legend = FALSE) +
+  geom_jitter(width = .05, shape = 21, color = "black")+
+  labs(x = "Network", y = "Strength", fill = "Network")
+dev.off()
+
+## Closeness ##
+df2 <- data.frame(metrics[, 1:8, "closeness"])
+head(df2)
+true_long2 <- stack(df2[1:4])
+true_long2$group <- "true"
+
+
+redundant_long2 <- stack(df2[5:8])
+redundant_long2$group <- "redundant"
+
+violin_df2 <- rbind(true_long2, redundant_long2)
+colnames(violin_df2) <- c("closeness", "node", "network")
+head(violin_df2)
+
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Closeness Violin Plot HCSF.jpg", width= 12, height= 6, res=800, units="in")
+ggplot(violin_df2, aes(x = network, y = closeness)) +
+  geom_violin(aes(fill = network), alpha = .5,
+              show.legend = FALSE) +
+  geom_jitter(width = .01, shape = 21, color = "black")+
+  ylim(0, .1) +
+  labs(x = "Network", y = "Closeness")
+dev.off()
+
+## Betweenness ## 
+df3 <- data.frame(metrics[, 1:8, "betweenness"])
+head(df3)
+true_long3 <- stack(df3[1:4])
+true_long3$group <- "true"
+
+
+redundant_long3 <- stack(df3[5:8])
+redundant_long3$group <- "redundant"
+
+violin_df3 <- rbind(true_long3, redundant_long3)
+colnames(violin_df3) <- c("betweenness", "node", "network")
+head(violin_df3)
+
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Betweenness Violin Plot HCSF.jpg", width= 12, height= 6, res=800, units="in")
+ggplot(violin_df3, aes(x = network, y = betweenness)) +
+  geom_violin(aes(fill = network), alpha = .5,
+              show.legend = FALSE) +
+   geom_jitter(width = .01, shape = 21, color = "black") +
+  labs(x = "Network", y = "Betweenness")
+dev.off()
 
 ```
 

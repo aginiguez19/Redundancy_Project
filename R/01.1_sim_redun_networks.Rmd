@@ -1,8 +1,10 @@
 ---
 title: "Forms of Redundant Networks"
-author: "Abraham Iniguez"
+author: "Abraham Iñiguez"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -19,9 +21,9 @@ library(igraph)
 source("00_project_functions.R")
 ```
 
-#### True Network Test
+#### True Network Test {.unlisted .unnumbered}
 
-```{r}
+```{r include = FALSE}
 # Use corr.gen() function to obtain correlation matrix
 # nv = number of variables, EF = effective features of matrix
 # edge. probability = probability an edge is present or not
@@ -44,8 +46,10 @@ true_pcor <- cor2pcor(true_mat)
 # hcsf() ~ Obtain redundant corr matrix that is highly correlated & same function
 
 
-metrics <- array(NA, dim = c(1000, 2, 3),
-                 dimnames = list(NULL, c("avg_node1_3", "node4"),
+metrics <- array(NA, dim = c(1000, 11, 3),
+                 dimnames = list(NULL, c("p1_true", "p2_true", "p3_true",
+                 "target", "p1_redun", "p2_redun", "p3_redun", "target_redun",
+                 "clone","peripheral_change", "target_change"),
                                        c("strength", "closeness",
                                          "betweenness")))
 
@@ -63,27 +67,35 @@ for (i in 1:1000){
                                         mode = "undirected",
                                         weighted = TRUE)
  ## Strength ##
- strength_subset <- strength(g_subset)
- strength_full <- strength(g_full)
-  avg_node1_3_s <- mean(strength_full[1:3] - strength_subset[1:3])
-  node4_s <- strength_full[4]-strength_subset[4]
-  metrics[i,,"strength"] <- c(avg_node1_3_s, node4_s)
+  strength_subset <- strength(g_subset)
+  metrics[i, 1:4, "strength"] <- strength_subset
+  strength_full <- strength(g_full)
+  metrics[i, 5:9, "strength"] <- strength_full
+  peripheral_change_s <- mean(strength_full[1:3] - strength_subset[1:3])
+  target_change_s <- strength_full[4] - strength_subset[4]
+  metrics[i, 10:11,"strength"] <- c(peripheral_change_s, target_change_s)
 
   ## Closeness ##
   closeness_subset <- closeness(g_subset, weights = 1/abs(E(g_subset)$weight))
+  metrics[i, 1:4, "closeness"] <- closeness_subset
   closeness_full <- closeness(g_full, weights = 1/abs(E(g_full)$weight))
-  avg_node1_3_c <- mean(closeness_full[1:3] - closeness_subset[1:3])
-  node4_c <- closeness_full[4] - closeness_subset[4]
-  metrics[i,,"closeness"] <- c(avg_node1_3_c, node4_c)
+  metrics[i, 5:9, "closeness"] <- closeness_full
+  peripheral_change_c <- mean(closeness_full[1:3] - closeness_subset[1:3])
+  target_change_c <- closeness_full[4] - closeness_subset[4]
+  metrics[i, 10:11,"closeness"] <- c(peripheral_change_c, target_change_c)
   
   ## Betweenness ## 
   betweenness_subset <- betweenness(g_subset,
                                    weights = 1/abs(E(g_subset)$weight))
+  metrics[i, 1:4, "betweenness"] <- betweenness_subset
   betweenness_full <- betweenness(g_full, weights = 1/abs(E(g_full)$weight))
-  avg_node1_3_b <- mean(betweenness_full[1:3] - betweenness_subset[1:3])
-  node4_b <- betweenness_full[4] - betweenness_subset[4]
-  metrics[i,,"betweenness"] <- c(avg_node1_3_b, node4_b)
+  metrics[i, 5:9, "betweenness"] <- betweenness_full
+  peripheral_change_b <- mean(betweenness_full[1:3] - betweenness_subset[1:3])
+  target_change_b <- betweenness_full[4] - betweenness_subset[4]
+  metrics[i,10:11,"betweenness"] <- c(peripheral_change_b, target_change_b)
 }
+
+head(metrics)
 
 ```
 
