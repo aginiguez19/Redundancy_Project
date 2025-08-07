@@ -67,7 +67,7 @@ uncor_mat <- cbind(pxp_mat, c(0.415 + rnorm(1, 0, 0.001),
                               0.183 + rnorm(1, 0, 0.001),
                               0.0827 + rnorm(1, 0, 0.001),
                               0.272 + rnorm(1, 0, 0.01)))
-
+uncor_mat
 copy_2 <- uncor_mat[,5]
 uncor_mat <- rbind(uncor_mat, c(copy_2, 0.644))
 model_c <- pcor(uncor_mat)

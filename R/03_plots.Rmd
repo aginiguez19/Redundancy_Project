@@ -85,7 +85,7 @@ plot(metrics[,"avg_node1_3","closeness"], metrics[,"avg_node1_3","strength"])
 
 ```
 
-#### Violin Plots
+### Violin Plots
 
 ```{r echo = FALSE}
 
@@ -155,6 +155,240 @@ ggplot(violin_df3, aes(x = network, y = betweenness)) +
    geom_jitter(width = .01, shape = 21, color = "black") +
   labs(x = "Network", y = "Betweenness")
 dev.off()
+
+```
+
+### Scatter Plot
+```{r}
+
+## Strength Plot ##
+strength_df <- data.frame(
+  strength = metrics[, (nv + 1): (2*nv), "strength"] - metrics[, 1:nv, "strength"]
+)
+
+colnames(strength_df) <- c(paste0("P", 1:(nv-1)), "Target")
+
+
+strength_df_long <- stack(strength_df)
+colnames(strength_df_long) <- c("Strength.diff", "Node")
+
+means.s <- tapply(X = strength_df_long$Strength.diff,INDEX = 
+                strength_df_long$Node,FUN = mean, na.rm = TRUE 
+                )
+sd.s <- tapply(X = strength_df_long$Strength.diff,
+               INDEX = strength_df_long$Node,
+               FUN = sd, na.rm = TRUE
+               )
+
+strength_gg <- data.frame(
+  Node = names(means.s),
+  Mean = as.vector(means.s),
+  SE = as.vector(sd.s)/sqrt(1000)
+)
+
+
+colnames(net_change_matrix) <- c(paste0("P", 1:(nv-1)), "Target")
+
+
+strength_new_df_long <- stack(as.data.frame(net_change_matrix))
+colnames(strength_new_df_long) <- c("Strength.diff", "Node")
+
+means.sn <- tapply(X = strength_new_df_long$Strength.diff,INDEX = 
+                strength_new_df_long$Node,FUN = mean, na.rm = TRUE 
+                )
+sd.sn <- tapply(X = strength_new_df_long$Strength.diff,
+               INDEX = strength_new_df_long$Node,
+               FUN = sd, na.rm = TRUE
+               )
+
+strength_ngg <- data.frame(
+  Node = c(names(means.sn), names(means.s)),
+  Mean = c(as.vector(means.sn), as.vector(means.s)),
+  SE = c(as.vector(sd.sn)/sqrt(1000), as.vector(sd.s)/sqrt(1000))
+)
+# Add additional categorical variable
+strength_ngg$Type <- c(rep("Without Clone", nv), rep("With Clone", nv))
+
+
+strength_ngg$Node <- factor(strength_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target",paste0("P", 1:(nv-1), ".r"), "Target.r"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Delta Strength Scatterplot HCSF.jpg", width= 12, height= 6, res=800, units="in")
+ggplot(strength_ngg, aes(x = Node, y = Mean, shape = Node)) +
+  geom_point(size = 5, aes(color = Type, fill = Type), alpha = .8, show.legend = FALSE) +
+  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) + 
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
+  ylim(-.4, .4) + 
+  labs(x = "Node", y = expression(paste(Delta, " Strength"))) +
+  geom_hline(yintercept = 0, linetype = 2, colour = "red") +
+    theme_light(base_size = 20) +
+   theme(plot.title = element_text(hjust = 0.5)) +
+theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "top",
+    legend.direction = "horizontal",
+    legend.box = "horizontal"
+  ) +
+  guides(fill = guide_legend(nrow = 1))
+dev.off()
+
+
+
+
+## Closeness Plot ##
+
+closeness_df <- data.frame(
+  closeness = metrics[ ,(nv + 1):(2*nv), "closeness"] - metrics[, 1:nv, "closeness"]
+)
+
+
+colnames(closeness_df) <- c(paste0("P", 1:(nv-1)), "Target")
+
+
+
+closeness_df_long <- stack(closeness_df)
+colnames(closeness_df_long) <- c("Closeness.diff", "Node")
+
+
+
+means.c <- tapply(X = closeness_df_long$Closeness.diff,INDEX = 
+                closeness_df_long$Node,FUN = mean, na.rm = TRUE 
+                )
+sd.c <- tapply(X = closeness_df_long$Closeness.diff,
+               INDEX = closeness_df_long$Node,
+               FUN = sd, na.rm = TRUE
+               )
+
+closeness_gg <- data.frame(
+  Node = names(means.c),
+  Mean = as.vector(means.c),
+  SE = as.vector(sd.c)/sqrt(1000)
+)
+
+
+colnames(closeness_matrix) <- c(paste0("P", 1:(nv-1)),
+                                "Target")
+closeness_new_df_long <- stack(as.data.frame(closeness_matrix))
+colnames(closeness_new_df_long) <- c("Closeness.diff", "Node")
+
+
+
+means.cn <- tapply(X = closeness_new_df_long$Closeness.diff,
+                  INDEX = closeness_new_df_long$Node, FUN = mean, na.rm = TRUE)
+
+sd.cn <- tapply(X = closeness_new_df_long$Closeness.diff,
+                INDEX = closeness_new_df_long$Node,
+                FUN = sd, na.rm = TRUE)
+
+closeness_ngg <- data.frame(
+  Node = c(names(means.cn), names(means.c)),
+  Mean = c(as.vector(means.cn), as.vector(means.c)),
+  SE = c(as.vector(sd.cn)/sqrt(1000), as.vector(sd.c)/sqrt(1000))
+)
+
+
+
+# Add additional categorical variable
+closeness_ngg$Type <- c(rep("Without Clone", nv), rep("With Clone", nv))
+
+
+closeness_ngg$Node <- factor(strength_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target",paste0("P", 1:(nv-1), ".r"), "Target.r"))
+
+
+closeness_gg$Node <- factor(closeness_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target"))
+
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Delta Closeness Scatterplot HCSF.jpg", width= 12, height= 6, res=800, units="in")
+ggplot(closeness_ngg, aes(x = Node, y = Mean, shape = Node)) +
+  geom_point(size = 5, aes(color = Type, fill = Type), alpha = .8, show.legend = FALSE) +
+  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) +
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
+  ylim(-.2, .2) + 
+  labs(x = "Node", y = expression(paste(Delta, "Closeness"))) +
+  geom_hline(yintercept = 0, linetype = 2, colour = "red") +
+    theme_light(base_size = 20)+
+   theme(plot.title = element_text(hjust = 0.5))
+dev.off()
+
+
+
+## Betweenness Plot ## 
+
+betweenness_df <- data.frame(
+  betweenness = metrics[,(nv + 1):(2*nv), "betweenness"] - metrics[, 1:nv, "betweenness"]
+)
+
+colnames(betweenness_df) <- c(paste0("P", 1:(nv-1)), "Target")
+
+betweenness_df_long <- stack(betweenness_df)
+colnames(betweenness_df_long) <- c("Betweenness.diff", "Node")
+
+means.b <- tapply(X = betweenness_df_long$Betweenness.diff,INDEX = 
+                betweenness_df_long$Node,FUN = mean, na.rm = TRUE 
+                )
+sd.b <- tapply(X = betweenness_df_long$Betweenness.diff,
+               INDEX = betweenness_df_long$Node,
+               FUN = sd, na.rm = TRUE
+               )
+
+betweenness_gg <- data.frame(
+  Node = names(means.b),
+  Mean = as.vector(means.b),
+  SE = as.vector(sd.b)/sqrt(1000)
+)
+
+
+
+colnames(betweenness_matrix) <- c(paste0("P", 1:(nv-1)),
+                                "Target")
+betweenness_new_df_long <- stack(as.data.frame(betweenness_matrix))
+colnames(betweenness_new_df_long) <- c("Betweenness.diff", "Node")
+
+
+
+means.bn <- tapply(X = betweenness_new_df_long$Betweenness.diff,
+                  INDEX = betweenness_new_df_long$Node, FUN = mean, na.rm = TRUE)
+
+sd.bn <- tapply(X = betweenness_new_df_long$Betweenness.diff,
+                INDEX = betweenness_new_df_long$Node,
+                FUN = sd, na.rm = TRUE)
+
+betweenness_ngg <- data.frame(
+  Node = c(names(means.bn), names(means.b)),
+  Mean = c(as.vector(means.bn), as.vector(means.b)),
+  SE = c(as.vector(sd.bn)/sqrt(1000), as.vector(sd.b)/sqrt(1000))
+)
+
+
+
+# Add additional categorical variable
+betweenness_ngg$Type <- c(rep("Without Clone", nv), rep("With Clone", nv))
+
+
+betweenness_ngg$Node <- factor(strength_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target",paste0("P", 1:(nv-1), ".r"), "Target.r"))
+
+betweenness_gg$Node <- factor(betweenness_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target"))
+
+
+
+
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Delta Betweenness Scatterplot HCSF.jpg", width= 12, height= 6, res=800, units="in")
+ggplot(betweenness_ngg, aes(x = Node, y = Mean, shape = Node)) +
+  geom_point(size = 5, aes(color = Type, fill = Type) ,alpha = .8, position = position_dodge(width = 0.015), show.legend = FALSE) +
+  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) +
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
+  ylim(-.5, .5) +
+  labs(x = "Node", y = expression(paste(Delta, " Betweenness"))) +
+  geom_hline(yintercept = 0, linetype = 2, colour = "red") +
+  theme_light(base_size = 20) + 
+   theme(plot.title = element_text(hjust = 0.5))
+dev.off()
+
+betweenness_ngg
+
 
 ```
 
