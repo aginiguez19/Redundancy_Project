@@ -21,10 +21,11 @@ library(igraph)
 source("00_project_functions.R")
 ```
 
-### Form 1: HCSF
+### Simulation
 
 
 ```{r}
+# Initialize input values
 nsim <- 10
 nv <- 4
 ep <- .9
@@ -36,58 +37,53 @@ EF <- .5
 # Functions needed
 # corr_gen() ~ Obtain true network corr matrix
 # cor2pcor() ~ Move from corr matrix to pcor matrix
-# hcsf() ~ Obtain redundant corr matrix that is highly correlated & same function ~ to be changed
-
-# Set empty matrix and array to hold results
-node_names <- c(paste0("P", 1:(nv-1), ".r.diff"))
-net_change_matrix <- matrix(data = NA, nrow = nsim, ncol = nv, dimnames = list(NULL, c(node_names, "Target.r.diff")))
-
-closeness_matrix <- matrix(data = NA, nrow = nsim, ncol = nv, dimnames = list(NULL, c(node_names, "Target.r.diff")))
-
-betweenness_matrix <- matrix(data = NA, nrow = nsim, ncol = nv, dimnames = list(NULL, c(node_names, "Target.r.diff")))
 
 
-metrics_hcsf <- array(NA, dim = c(nsim, (2*nv + 1), 3),
+
+#  contains the full simulated data
+
+hcsf_all <- array(NA, dim = c(nsim, (2*nv + 1), 3),
                  dimnames = list(NULL, c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".r"), "Target.r", "Clone"), c("strength", "closeness", "betweenness")))
+
+
+hcsf_wc <- array(NA, dim = c(nsim, nv, 3),
+                  dimnames = list(NULL, c(paste0("P", 1:(nv-1)), "Target"), c("strength", "closeness", "betweenness")))
 
 
 
 for (i in 1:nsim){
   true_mat <- corr_gen(nv = nv, EF = EF, edge.probability = ep)
-  redun_mat <- hcsf(matrix = true_mat) # This is probably where I need to change the code, I am not sure what to do. If I do not make any progress today, I will ask in the node redundancy chat 
-  redun_subset <- redun_mat[1:nv, 1:nv]
-  redun_pcor_subset <- cor2pcor(redun_subset)
+  redun_mat <- hcsf(matrix = true_mat)
+  true_subset <- redun_mat[1:nv, 1:nv]
+  true_pcor_subset <- cor2pcor(true_subset)
   redun_pcor <- cor2pcor(redun_mat)
 # Create one block matrix for easy computation
-  one <- cbind(redun_pcor_subset, diag(0, nv, nv+1))
+  one <- cbind(true_pcor_subset, diag(0, nv, nv+1))
   two <- cbind(diag(0, nv+1, nv), redun_pcor)
   the_g <- rbind(one, two)
   colnames(the_g) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".r"), "Target.r", "Clone")
   
 # qgraph plots and graph matrices
-  g1 = qgraph(redun_pcor_subset, edge.labels = TRUE, DoNotPlot = TRUE)
+  g1 = qgraph(true_pcor_subset, edge.labels = TRUE, DoNotPlot = TRUE)
   if (i == 1){
   g2 = qgraph(redun_pcor, edge.labels = TRUE, DoNotPlot = TRUE)
   pp = averageLayout(g2)}
   png(filename = paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Network Graphs/HCSF_Graph_', i, ".png"), width = 1000, height = 500)
   par(mfrow = c(1, 2))
-  g1 = qgraph(redun_pcor_subset, layout = pp[1:nv,], edge.labels = TRUE, theme = "colorblind", labels = colnames(the_g)[1:nv], maximum = 1, vsize = 11, DoNotPlot = TRUE)
-  g1 = makeBW(g1)
-  g2 = qgraph(redun_pcor,layout = pp, edge.labels = TRUE, theme = "colorblind", labels = colnames(the_g)[(nv+1):(2*nv + 1)], maximum = 1, vsize = 11, DoNotPlot = TRUE)
-  g2 = makeBW(g2)
+  g1 = qgraph(true_pcor_subset, layout = pp[1:nv,], edge.labels = TRUE, theme = "colorblind", labels = colnames(the_g)[1:nv], maximum = 1, vsize = 11)
+  g2 = qgraph(redun_pcor,layout = pp, edge.labels = TRUE, theme = "colorblind", labels = colnames(the_g)[(nv+1):(2*nv + 1)], maximum = 1, vsize = 11)
   graphics.off()
-  
   the_g <- graph_from_adjacency_matrix(the_g, mode = "undirected", weighted = TRUE)
   saveRDS(the_g, paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Graph Matrices/HCSF_File_', i, ".RDS"))
   
 #Compute Strength, Closeness, and Betweenness    
-  metrics_hcsf[i,, "strength"] <- strength(the_g)
-  metrics_hcsf[i,,"closeness"] <- closeness(the_g, weights = 1/round(abs(E(the_g)$weight),2), normalized = TRUE)
-  metrics_hcsf[i,,"betweenness"] <- betweenness(the_g, weights = 1/(abs(E(the_g)$weight)), normalized = FALSE)
+  hcsf_all[i,, "strength"] <- strength(the_g)
+  hcsf_all[i,,"closeness"] <- closeness(the_g, weights = 1/round(abs(E(the_g)$weight),2), normalized = TRUE)
+  hcsf_all[i,,"betweenness"] <- betweenness(the_g, weights = 1/(abs(E(the_g)$weight)), normalized = FALSE)
 
-  if (!is.null(metrics_hcsf)) {
-  saveRDS(metrics_hcsf, paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Metrics/HCSF_Metrics_', i , ".RDS"))
-  prev_file <- paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Metrics/HCSF_Metrics_', i - 1, ".RDS")
+  if (!is.null(hcsf_all)) {
+  saveRDS(hcsf_all, paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Metrics/HCSF_', i , ".RDS"))
+  prev_file <- paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Metrics/HCSF_', i - 1, ".RDS")
   if (file.exists(prev_file)) {
     file.remove(prev_file)
   }
@@ -99,43 +95,70 @@ for (i in 1:nsim){
 # Compute clone inclusion difference in redundancy network
   total_strength <- strength(the_g)
   connections_2_clone <- E(the_g)$weight[which(grepl("Clone", as_ids(E(the_g))))]
-  net_change_matrix[i,] <- (total_strength[(nv+1):(2*nv)] - connections_2_clone) - total_strength[1:nv]
+  hcsf_wc[i,,"strength"] <- (total_strength[(nv+1):(2*nv)] - connections_2_clone) - total_strength[1:nv]
   
   clone_edges <- E(the_g)[grepl("Clone", as_ids(E(the_g)))]
   g_no_clone <- delete_edges(the_g, clone_edges)
-  closeness_woc <- closeness(g_no_clone, normalized = TRUE, weights = 1/abs(E(g_no_clone)$weight))
+  closeness_wc <- closeness(g_no_clone, normalized = TRUE, weights = 1/abs(E(g_no_clone)$weight))
   closeness_wthc <- closeness(the_g, normalized = TRUE, weights = 1/abs(E(the_g)$weight))
-  closeness_matrix[i,] <- closeness_woc[(nv+1):(2*nv)] - closeness_wthc[1:nv]
+  hcsf_wc[i,,"closeness"] <- closeness_wc[(nv+1):(2*nv)] - closeness_wthc[1:nv]
   
- betweenness_woc <- betweenness(g_no_clone, normalized = FALSE, weights = 1/abs(E(g_no_clone)$weight))
+ betweenness_wc <- betweenness(g_no_clone, normalized = FALSE, weights = 1/abs(E(g_no_clone)$weight))
  betweenness_wthc <- betweenness(the_g, normalized = FALSE,  weights = 1/abs(E(the_g)$weight))
- betweenness_matrix[i, ] <- betweenness_woc[(nv+1):(2*nv)] - betweenness_wthc[1:nv]
+ hcsf_wc[i,,"betweenness" ] <- betweenness_wc[(nv+1):(2*nv)] - betweenness_wthc[1:nv]
 
 }
 ```
 
 
-### Form 2: HCDF
 
 ```{r}
+# Initial values 
+nsim <- 10
+nv <- 4
+ep <- .9
+EF <- .5
+loading <- .9
+scalar <-  1
 
-```
+# Array containing data 
+metrics <- array(NA, dim = c(nsim, (2*nv + 1), 3),
+                 dimnames = list(NULL, c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".r"), "Target.r", "Clone"), c("strength", "closeness", "betweenness")))
 
-### Form 3: WCSF
+for (i in 1:nsim){
+# Correlation matrix of the latent variables
+  lat_corr <- corr_gen(nv = nv, EF = EF, edge.probability = ep) 
+# Correlation matrix of the indicators with the inclusion of the redundant indicator
+ 
+  
+# Correlation matrix of the indicators excluding the redundant indicator
+  true_corr <- redun_corr[1:nv, 1:nv]
+   # Partial correlation matrix of the indicators excluding the redundant indicator
+  true_pcor <- cor2pcor(true_corr)
+# Partial correlation matrix of the indicators with the inclusion of the redundant indicator
+  redun_pcor <- cor2pcor(redun_corr)
 
-```{r}
-cor.mats = list()
-types = paste0("Redun", 1:4)
-reps = paste0("Run", 1:100)
-for(i in types){
-  temp = list()
-  for(j in reps){
-    temp[[j]] = matrix(rnorm(16), 4, 4)
-  }  
-  cor.mats[[i]] = temp
+
+# Create a block for easier centrality computation 
+  one <- cbind(true_pcor, diag(0, nv, nv+1))
+  two <- cbind(diag(0, nv+1, nv), redun_pcor)
+  the_g <- rbind(one, two)
+  the_g <- graph_from_adjacency_matrix(the_g, mode = "undirected", weighted = TRUE)
+
+  
+# Get centrality metrics  
+  metrics[i,, "strength"] <- strength(the_g)
+  metrics[i,,"closeness"] <- closeness(the_g, weights = 1/round(abs(E(the_g)$weight),2), normalized = TRUE)
+  metrics[i,,"betweenness"] <- betweenness(the_g, weights = 1/(abs(E(the_g)$weight)), normalized = FALSE)
 }
-cor.mats$Redun1$Run26
+
 ```
+
+
+
+
+
+
 
 
 
