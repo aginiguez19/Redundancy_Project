@@ -129,8 +129,7 @@ for (i in 1:nsim){
 # Correlation matrix of the latent variables
   lat_corr <- corr_gen(nv = nv, EF = EF, edge.probability = ep) 
 # Correlation matrix of the indicators with the inclusion of the redundant indicator
- 
-  
+  redun_corr <- ind_corr(matrix = lat_corr,loading = loading, scalar = 1)
 # Correlation matrix of the indicators excluding the redundant indicator
   true_corr <- redun_corr[1:nv, 1:nv]
    # Partial correlation matrix of the indicators excluding the redundant indicator
