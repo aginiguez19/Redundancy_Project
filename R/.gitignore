@@ -1,9 +1,0 @@
-# Ignore macOS system files
-.DS_Store
-Output/.DS_Store
-R/.DS_Store
-
-# Ignore RStudio project files
-.Rproj.user/
-.Rhistory
-.Rproj.user
