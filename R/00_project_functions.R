@@ -39,15 +39,14 @@ cor2pcor <- function(matrix){
 
 
 # Correlation of Indicators + Redundant Indicator Function  ----------------------------------------------------------
-
+nv <- 4
+loadings <- .9
+clone_loading <- 0
+lat_corr <- corr_gen(nv = 4, EF = .5, edge.probability = .9)
+matrix <- lat_corr
 
 ind_corr <- function(matrix, loadings, clone_loading, scalar = 1){
   # Lambda
-  loadings <- .9
-  clone_loading <- 0
-  lat_corr <- corr_gen(nv = 4, EF = .5, edge.probability = .9)
-  matrix <- lat_corr
-
   dimensions <- dim(matrix)
   lambda_matrix <- diag(x = loadings, nrow = dimensions[1] + 1 , ncol = dimensions[2])
   last_element <- nrow(lambda_matrix) * ncol(lambda_matrix)
@@ -57,8 +56,9 @@ ind_corr <- function(matrix, loadings, clone_loading, scalar = 1){
   redun_mat <- lambda_matrix %*% matrix %*% t(lambda_matrix)
   if (redun_mat[dimensions[1],dimensions[2]] == 0) {
     redun_mat[5,1:3] <- redun_mat[4, 1:3]
-    
+    redun_mat[1:3,5] <- redun_mat[5, 1:3]
   }
+redun_mat
   # Theta
   dimensions_theta <- dim(redun_mat)
   theta <- diag((x = 1 - (loadings)^2), nrow = dimensions_theta[1], ncol = dimensions_theta[2])
@@ -67,13 +67,17 @@ ind_corr <- function(matrix, loadings, clone_loading, scalar = 1){
   redun_mat[1:nv,nv+1] <- scalar*redun_mat[1:nv,nv+1]
   return(redun_mat)
 }
-
-
-# Correlation of Indicators Function Test ---------------------------------
+redun_pcor <- cor2pcor(redun_mat)
+qgraph(redun_pcor, layout = "spring",
+       edge.labels = TRUE,
+       theme = "colorblind",
+       maximum = 1,
+       vsize = 11)
+# Correlation Matrix of Indicators Function Test ---------------------------------
 nv <- 4
 for (i in 1:10){
 lat_corr <- corr_gen(nv = 4, EF = .5, edge.probability = .9)
-redun_corr <- ind_corr(matrix = lat_corr, loadings = .6, clone_loading = .6, scalar = -1)
+redun_corr <- ind_corr(matrix = lat_corr, loadings = .9, clone_loading = 0, scalar = -1)
 redun_pcor <- cor2pcor(redun_corr)
 true_corr <- redun_corr[1:nv, 1:nv]
 true_pcor <- cor2pcor(true_corr)
