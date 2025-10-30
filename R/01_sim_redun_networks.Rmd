@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Network Test & Setup:
 
-### Load Packages
+## Load Packages
 
 ```{r message = FALSE}
 library(qgraph)
@@ -21,7 +21,7 @@ library(igraph)
 source("00_project_functions.R")
 ```
 
-### Simulation
+### Main Simulation
 
 
 ```{r}
@@ -110,32 +110,43 @@ for (i in 1:nsim){
 }
 ```
 
-
+### Test Simulation
 
 ```{r}
 # Initial values 
-nsim <- 10
+nsim <- 1000
 nv <- 4
 ep <- .9
 EF <- .5
 loading <- .9
-scalar <-  1
 
-# Array containing data 
-metrics <- array(NA, dim = c(nsim, (2*nv + 1), 3),
-                 dimnames = list(NULL, c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".r"), "Target.r", "Clone"), c("strength", "closeness", "betweenness")))
+
+# Arrays containing data 
+local_metrics <- array(NA, dim = c(nsim, (2*nv + 1), 4),
+                 dimnames = list(NULL, c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".r"), "Target.r", "Clone"),  c("Expected Influence","Strength", "Closeness", "Betweenness")))
+
+global_metrics = array(NA, dim = c(nsim, 2, 2),
+                       dimnames = list(NULL, c("True Network", "Redundant Network"), c("APL", "Weighted Density")))
+
+
 
 for (i in 1:nsim){
 # Correlation matrix of the latent variables
-  lat_corr <- corr_gen(nv = nv, EF = EF, edge.probability = ep) 
+  lat_corr <- corr_gen(nv = 4, EF = EF, edge.probability = ep)
+  
 # Correlation matrix of the indicators with the inclusion of the redundant indicator
-  redun_corr <- ind_corr(matrix = lat_corr,loading = loading, scalar = 1)
+  redun_corr <- ind_corr(matrix = lat_corr,loadings = loading, clone_loading = .9,
+                         redundancy = TRUE)
+ 
 # Correlation matrix of the indicators excluding the redundant indicator
   true_corr <- redun_corr[1:nv, 1:nv]
-   # Partial correlation matrix of the indicators excluding the redundant indicator
+
+# Partial correlation matrix of the indicators excluding the redundant indicator
   true_pcor <- cor2pcor(true_corr)
+  colnames(true_pcor) = c(paste0("P", 1:(nv-1)), "Target")
 # Partial correlation matrix of the indicators with the inclusion of the redundant indicator
   redun_pcor <- cor2pcor(redun_corr)
+  colnames(redun_pcor) = c(paste0("P", 1:(nv-1), ".r"), "Target.r", "Clone")
 
 
 # Create a block for easier centrality computation 
@@ -143,17 +154,30 @@ for (i in 1:nsim){
   two <- cbind(diag(0, nv+1, nv), redun_pcor)
   the_g <- rbind(one, two)
   the_g <- graph_from_adjacency_matrix(the_g, mode = "undirected", weighted = TRUE)
-
+  tpcor_graph = graph_from_adjacency_matrix(true_pcor, mode = "undirected", weighted = TRUE)
+  rpcor_graph = graph_from_adjacency_matrix(redun_pcor, mode = "undirected", weighted = TRUE) 
   
+
 # Get centrality metrics  
-  metrics[i,, "strength"] <- strength(the_g)
-  metrics[i,,"closeness"] <- closeness(the_g, weights = 1/round(abs(E(the_g)$weight),2), normalized = TRUE)
-  metrics[i,,"betweenness"] <- betweenness(the_g, weights = 1/(abs(E(the_g)$weight)), normalized = FALSE)
+  local_metrics[i,, "Expected Influence"] <- strength(the_g)
+  local_metrics[i,,"Strength"] <- strength(the_g, weights = abs(E(the_g)$weight))
+  local_metrics[i,,"Closeness"] <- closeness(the_g, weights = 1/round(abs(E(the_g)$weight),2), normalized = TRUE)
+  local_metrics[i,,"Betweenness"] <- betweenness(the_g, weights = 1/(abs(E(the_g)$weight)), normalized = FALSE)
+  global_metrics[i,"True Network","APL"] <- mean_distance(tpcor_graph, weights = 1/abs(E(tpcor_graph)$weight))
+  global_metrics[i, "Redundant Network", "APL"] <- mean_distance(rpcor_graph, weights = 1/abs(E(rpcor_graph)$weight))
+  global_metrics[i, "True Network", "Weighted Density"] <- weighted_density(igrph.object = tpcor_graph, abs = TRUE)
+  global_metrics[i, "Redundant Network", "Weighted Density"] <- weighted_density(igrph.object = rpcor_graph, abs = TRUE)
 }
+
 
 ```
 
 
+
+
+### Tasks
+
+1) Continue modifying simulation code to include 
 
 
 

@@ -1,11 +1,11 @@
 
-
+# library(qgraph)
 
 # Correlation Matrix Function ---------------------------------------------
 
-#EF = effective features
-#nv = number of variables 
-#edge.probability = probability of an edge
+# EF = effective features (correlations)
+# nv = number of variables (nodes) 
+# edge.probability = probability of an edge being present
 
 corr_gen = function(nv, EF, edge.probability){
   flag = 0
@@ -37,70 +37,92 @@ cor2pcor <- function(matrix){
 }
 
 
+# True and Redundant Correlation Matrix Function  ----------------------------------------------------------
+# If creating a random network, specify the # of nodes after including a random
+# node, example: nv = 5 if I want my true network to be 4 nodes
 
-# Correlation of Indicators + Redundant Indicator Function  ----------------------------------------------------------
-nv <- 4
-loadings <- .9
-clone_loading <- 0
-lat_corr <- corr_gen(nv = 4, EF = .5, edge.probability = .9)
-matrix <- lat_corr
+# If creating a redundant network, specify the # of nodes of the true network,
+# example: nv = 4 if I want my true network to be 4 nodes 
 
-ind_corr <- function(matrix, loadings, clone_loading, scalar = 1){
+# matrix = any sized matrix
+# loadings = the factor loadings of peripheral and target nodes
+# clone_loading = the factor loading of the clone node aka copy of the target
+# default to .9
+# redundancy = TRUE as default, FALSE means you are generating a random network
+
+ind_corr <- function(matrix, loadings, clone_loading = .9, redundancy = TRUE){
   # Lambda
   dimensions <- dim(matrix)
+  if (redundancy == FALSE) {
+    lambda_matrix = diag(x = loadings, nrow = dimensions[1], ncol = dimensions[2])
+    
+    # Lambda * Psi * t(Lambda)
+    random_mat <- lambda_matrix %*% matrix %*% t(lambda_matrix)
+
+    # Theta
+    dimensions_theta <- dim(random_mat)
+    theta <- diag((x = 1 - (loadings)^2), nrow = dimensions_theta[1], ncol = dimensions_theta[2])
+    random_mat <- random_mat + theta
+    return(random_mat)
+  }
   lambda_matrix <- diag(x = loadings, nrow = dimensions[1] + 1 , ncol = dimensions[2])
   last_element <- nrow(lambda_matrix) * ncol(lambda_matrix)
   lambda_matrix[last_element] <- clone_loading
 
   # Lambda * Psi * t(Lambda)
   redun_mat <- lambda_matrix %*% matrix %*% t(lambda_matrix)
-  if (redun_mat[dimensions[1],dimensions[2]] == 0) {
-    redun_mat[5,1:3] <- redun_mat[4, 1:3]
-    redun_mat[1:3,5] <- redun_mat[5, 1:3]
-  }
-redun_mat
+lambda_matrix
   # Theta
   dimensions_theta <- dim(redun_mat)
   theta <- diag((x = 1 - (loadings)^2), nrow = dimensions_theta[1], ncol = dimensions_theta[2])
   theta[dimensions_theta[1],dimensions_theta[2]] <- (1-(clone_loading)^2)
   redun_mat <- redun_mat + theta
-  redun_mat[1:nv,nv+1] <- scalar*redun_mat[1:nv,nv+1]
   return(redun_mat)
 }
-redun_pcor <- cor2pcor(redun_mat)
-qgraph(redun_pcor, layout = "spring",
-       edge.labels = TRUE,
-       theme = "colorblind",
-       maximum = 1,
-       vsize = 11)
-# Correlation Matrix of Indicators Function Test ---------------------------------
-nv <- 4
-for (i in 1:10){
-lat_corr <- corr_gen(nv = 4, EF = .5, edge.probability = .9)
-redun_corr <- ind_corr(matrix = lat_corr, loadings = .9, clone_loading = 0, scalar = -1)
-redun_pcor <- cor2pcor(redun_corr)
-true_corr <- redun_corr[1:nv, 1:nv]
-true_pcor <- cor2pcor(true_corr)
-colnames(redun_pcor) <- c(paste0("P",1:(nv-1)),"Target", "Clone")
-colnames(true_pcor) <- c(paste0("P", 1:(nv-1)), "Target")
-if (i == 1){
-  g2 = qgraph(redun_pcor, edge.labels = TRUE, DoNotPlot = TRUE)
-  pp = averageLayout(g2)}
-par(mfrow = c(1, 2))
-g1 <- qgraph(true_pcor, layout = pp[1:nv,],
-             edge.labels = TRUE,
-             theme = "colorblind",
-             labels = colnames(true_pcor),
-             maximum = 1,
-             vsize = 11)
-g2 <- qgraph(redun_pcor,layout = pp,
-       edge.labels = TRUE,
-       labels = colnames(redun_pcor),
-       theme = "colorblind",
-       maximum = 1, vsize = 11)
+
+
+# Weighted Density Function --------------------------------------------------------
+# This function takes your igraph object and whether you want weighted density
+# using "expected influence" aka strength or psych strength
+
+weighted_density = function(igrph.object, abs = TRUE){
+  if (abs == FALSE){
+    density = sum(E(igrph.object)$weight)/(length(igrph.object)*(length(igrph.object-1)/2))
+  }
+  else {
+    density = sum(abs(E(igrph.object)$weight))/(length(igrph.object)*(length(igrph.object-1)/2))
+  }
+  
+  return(density)
 }
 
 
+# Function Test ---------------------------------
+
+# for (i in 1:10){
+# lat_corr <- corr_gen(nv = 5, EF = .5, edge.probability = .9)
+# random_corr <- ind_corr(matrix = lat_corr, loadings = .9, clone_loading = .9, redundancy = FALSE)
+# random_pcor <- cor2pcor(random_corr)
+# true_corr <- random_corr[1:(nv-1), 1:(nv-1)]
+# true_pcor <- cor2pcor(true_corr)
+# colnames(random_pcor) <- c(paste0("P",1:(nv)))
+# colnames(true_pcor) <- c(paste0("P", 1:(nv-1)))
+# if (i == 1){
+#   g2 = qgraph(random_pcor, edge.labels = TRUE, DoNotPlot = TRUE)
+#   pp = averageLayout(g2)}
+# par(mfrow = c(1, 2))
+# g1 <- qgraph(true_pcor, layout = pp[1:(nv-1),],
+#              edge.labels = TRUE,
+#              theme = "colorblind",
+#              labels = colnames(true_pcor),
+#              maximum = 1,
+#              vsize = 9)
+# g2 <- qgraph(random_pcor,layout = pp,
+#        edge.labels = TRUE,
+#        labels = colnames(random_pcor),
+#        theme = "colorblind",
+#        maximum = 1, vsize = 9)
+# }
 
 
 
@@ -110,21 +132,21 @@ g2 <- qgraph(redun_pcor,layout = pp,
 
 
 
-# Collapse Redundant Node -------------------------------------------------
-a <- matrix(c(1, 0, 0, 0, 1,
-              0, 1, 0, 0, 0,
-              0, 0, 1, 0, 0,
-              0, 0, 0, 1, 0),4,5, byrow = T)
-c <- t(a)
-collapse_mat <- a%*%redun_mat%*%c
-collapse_model <- pcor(collapse_mat)
-graph_collapse <- qgraph(collapse_model, fade = T, edge.labels = TRUE,
-                         edge.label.cex = 1.5, layout = "circle",
-                         vsize = 10, vTrans = 260,
-                         groups = groups2,
-                         title = "Collapsed P + 1 Redundant Model",
-                         theme = "colorblind")
+# Collapsing a Redundant Node -------------------------------------------------
 
+# a <- matrix(c(1, 0, 0, 0, 1,
+#              0, 1, 0, 0, 0,
+#              0, 0, 1, 0, 0,
+#               0, 0, 0, 1, 0),4,5, byrow = T) 
+# c <- t(a)
+# collapse_mat <- a%*%redun_mat%*%c
+# collapse_model <- pcor(collapse_mat)
+# graph_collapse <- qgraph(collapse_model, fade = T, edge.labels = TRUE,
+#                          edge.label.cex = 1.5, layout = "circle",
+#                          vsize = 10, vTrans = 260,
+#                          groups = groups2,
+#                          title = "Collapsed P + 1 Redundant Model",
+#                          theme = "colorblind")
 
 
 
