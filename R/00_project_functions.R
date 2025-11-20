@@ -38,8 +38,6 @@ cor2pcor <- function(matrix){
 
 
 # True and Redundant Correlation Matrix Function  ----------------------------------------------------------
-# If creating a random network, specify the # of nodes after including a random
-# node, example: nv = 5 if I want my true network to be 4 nodes
 
 # If creating a redundant network, specify the # of nodes of the true network,
 # example: nv = 4 if I want my true network to be 4 nodes 
@@ -54,6 +52,9 @@ ind_corr <- function(matrix, loadings, clone_loading = .9, redundancy = TRUE){
   # Lambda
   dimensions <- dim(matrix)
   if (redundancy == FALSE) {
+    nv = nv + 1
+    matrix = corr_gen(nv = nv, EF = EF, edge.probability = ep)
+    dimensions = dim(matrix)
     lambda_matrix = diag(x = loadings, nrow = dimensions[1], ncol = dimensions[2])
     
     # Lambda * Psi * t(Lambda)
@@ -81,6 +82,9 @@ lambda_matrix
 }
 
 
+
+  
+  
 # Weighted Density Function --------------------------------------------------------
 # This function takes your igraph object and whether you want weighted density
 # using "expected influence" aka strength or psych strength

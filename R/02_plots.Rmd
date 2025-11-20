@@ -9,306 +9,500 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Load Packages
+## Load Packages
 ```{r message = FALSE}
-install.packages("tidyverse")
-library(matrixStats)
-library(tidyverse)
+package.list = c("ggplot2","tidyr", "ggridges",
+                 "patchwork")
+  sapply(package.list, function(package){
+  if(!require(package, character.only = TRUE)){
+  install.packages(package, dependencies = TRUE)
+} 
+  library(package, character.only = TRUE)
+})
+# packages = c("ggplot2", "tidyr", "ggridges")
+# invisible(lapply(packages, library, character.only = TRUE))
+
 ```
 
-#### Local Metrics
+## Local Metrics Plots
+
+#### Strength (Redundancy) |Psych Version|
+
 ```{r}
-
-## Expected Influence ##
-strength_df <- data.frame(
-  strength = metrics[, (nv + 1): (2*nv), "strength"] - metrics[, 1:nv, "strength"]
-)
-
-colnames(strength_df) <- c(paste0("P", 1:(nv-1)), "Target")
-
-
-strength_df_long <- stack(strength_df)
-colnames(strength_df_long) <- c("Strength.diff", "Node")
-
-means.s <- tapply(X = strength_df_long$Strength.diff,INDEX = 
-                strength_df_long$Node,FUN = mean, na.rm = TRUE 
-                )
-sd.s <- tapply(X = strength_df_long$Strength.diff,
-               INDEX = strength_df_long$Node,
-               FUN = sd, na.rm = TRUE
-               )
-
-strength_gg <- data.frame(
-  Node = names(means.s),
-  Mean = as.vector(means.s),
-  SE = as.vector(sd.s)/sqrt(1000)
-)
-
-
-colnames(net_change_matrix) <- c(paste0("P", 1:(nv-1)), "Target")
-
-
-strength_new_df_long <- stack(as.data.frame(net_change_matrix))
-colnames(strength_new_df_long) <- c("Strength.diff", "Node")
-
-means.sn <- tapply(X = strength_new_df_long$Strength.diff,INDEX = 
-                strength_new_df_long$Node,FUN = mean, na.rm = TRUE 
-                )
-sd.sn <- tapply(X = strength_new_df_long$Strength.diff,
-               INDEX = strength_new_df_long$Node,
-               FUN = sd, na.rm = TRUE
-               )
-
-strength_ngg <- data.frame(
-  Node = c(names(means.sn), names(means.s)),
-  Mean = c(as.vector(means.sn), as.vector(means.s)),
-  SE = c(as.vector(sd.sn)/sqrt(1000), as.vector(sd.s)/sqrt(1000))
-)
-# Add additional categorical variable
-strength_ngg$Type <- c(rep("Without Clone", nv), rep("With Clone", nv))
-
-
-strength_ngg$Node <- factor(strength_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target",paste0("P", 1:(nv-1), ".r"), "Target.r"))
-
-
-jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Delta Strength Scatterplot HCSF.jpg", width= 12, height= 6, res=800, units="in")
-ggplot(strength_ngg, aes(x = Node, y = Mean, shape = Node)) +
-  geom_point(size = 5, aes(color = Type, fill = Type), alpha = .8, show.legend = FALSE) +
-  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) + 
-  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
-  ylim(-.4, .4) + 
-  labs(x = "Node", y = expression(paste(Delta, " Strength"))) +
-  geom_hline(yintercept = 0, linetype = 2, colour = "red") +
-    theme_light(base_size = 20) +
-   theme(plot.title = element_text(hjust = 0.5)) +
-theme(
-    plot.title = element_text(hjust = 0.5),
-    legend.position = "top",
-    legend.direction = "horizontal",
-    legend.box = "horizontal"
-  ) +
-  guides(fill = guide_legend(nrow = 1))
-dev.off()
-
-
-
-
-## Closeness Plot ##
-
-closeness_df <- data.frame(
-  closeness = metrics[ ,(nv + 1):(2*nv), "closeness"] - metrics[, 1:nv, "closeness"]
-)
-
-
-colnames(closeness_df) <- c(paste0("P", 1:(nv-1)), "Target")
-
-
-
-closeness_df_long <- stack(closeness_df)
-colnames(closeness_df_long) <- c("Closeness.diff", "Node")
-
-
-
-means.c <- tapply(X = closeness_df_long$Closeness.diff,INDEX = 
-                closeness_df_long$Node,FUN = mean, na.rm = TRUE 
-                )
-sd.c <- tapply(X = closeness_df_long$Closeness.diff,
-               INDEX = closeness_df_long$Node,
-               FUN = sd, na.rm = TRUE
-               )
-
-closeness_gg <- data.frame(
-  Node = names(means.c),
-  Mean = as.vector(means.c),
-  SE = as.vector(sd.c)/sqrt(1000)
-)
-
-
-colnames(closeness_matrix) <- c(paste0("P", 1:(nv-1)),
-                                "Target")
-closeness_new_df_long <- stack(as.data.frame(closeness_matrix))
-colnames(closeness_new_df_long) <- c("Closeness.diff", "Node")
-
-
-
-means.cn <- tapply(X = closeness_new_df_long$Closeness.diff,
-                  INDEX = closeness_new_df_long$Node, FUN = mean, na.rm = TRUE)
-
-sd.cn <- tapply(X = closeness_new_df_long$Closeness.diff,
-                INDEX = closeness_new_df_long$Node,
-                FUN = sd, na.rm = TRUE)
-
-closeness_ngg <- data.frame(
-  Node = c(names(means.cn), names(means.c)),
-  Mean = c(as.vector(means.cn), as.vector(means.c)),
-  SE = c(as.vector(sd.cn)/sqrt(1000), as.vector(sd.c)/sqrt(1000))
-)
-
-
-
-# Add additional categorical variable
-closeness_ngg$Type <- c(rep("Without Clone", nv), rep("With Clone", nv))
-
-
-closeness_ngg$Node <- factor(strength_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target",paste0("P", 1:(nv-1), ".r"), "Target.r"))
-
-
-closeness_gg$Node <- factor(closeness_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target"))
-
-
-
-jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Delta Closeness Scatterplot HCSF.jpg", width= 12, height= 6, res=800, units="in")
-ggplot(closeness_ngg, aes(x = Node, y = Mean, shape = Node)) +
-  geom_point(size = 5, aes(color = Type, fill = Type), alpha = .8, show.legend = FALSE) +
-  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) +
-  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
-  ylim(-.2, .2) + 
-  labs(x = "Node", y = expression(paste(Delta, "Closeness"))) +
-  geom_hline(yintercept = 0, linetype = 2, colour = "red") +
-    theme_light(base_size = 20)+
-   theme(plot.title = element_text(hjust = 0.5))
-dev.off()
-
-
-
-## Betweenness Plot ## 
-
-betweenness_df <- data.frame(
-  betweenness = metrics[,(nv + 1):(2*nv), "betweenness"] - metrics[, 1:nv, "betweenness"]
-)
-
-colnames(betweenness_df) <- c(paste0("P", 1:(nv-1)), "Target")
-
-betweenness_df_long <- stack(betweenness_df)
-colnames(betweenness_df_long) <- c("Betweenness.diff", "Node")
-
-means.b <- tapply(X = betweenness_df_long$Betweenness.diff,INDEX = 
-                betweenness_df_long$Node,FUN = mean, na.rm = TRUE 
-                )
-sd.b <- tapply(X = betweenness_df_long$Betweenness.diff,
-               INDEX = betweenness_df_long$Node,
-               FUN = sd, na.rm = TRUE
-               )
-
-betweenness_gg <- data.frame(
-  Node = names(means.b),
-  Mean = as.vector(means.b),
-  SE = as.vector(sd.b)/sqrt(1000)
-)
-
-
-
-colnames(betweenness_matrix) <- c(paste0("P", 1:(nv-1)),
-                                "Target")
-betweenness_new_df_long <- stack(as.data.frame(betweenness_matrix))
-colnames(betweenness_new_df_long) <- c("Betweenness.diff", "Node")
-
-
-
-means.bn <- tapply(X = betweenness_new_df_long$Betweenness.diff,
-                  INDEX = betweenness_new_df_long$Node, FUN = mean, na.rm = TRUE)
-
-sd.bn <- tapply(X = betweenness_new_df_long$Betweenness.diff,
-                INDEX = betweenness_new_df_long$Node,
-                FUN = sd, na.rm = TRUE)
-
-betweenness_ngg <- data.frame(
-  Node = c(names(means.bn), names(means.b)),
-  Mean = c(as.vector(means.bn), as.vector(means.b)),
-  SE = c(as.vector(sd.bn)/sqrt(1000), as.vector(sd.b)/sqrt(1000))
-)
-
-
-
-# Add additional categorical variable
-betweenness_ngg$Type <- c(rep("Without Clone", nv), rep("With Clone", nv))
-
-
-betweenness_ngg$Node <- factor(strength_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target",paste0("P", 1:(nv-1), ".r"), "Target.r"))
-
-betweenness_gg$Node <- factor(betweenness_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target"))
-
-
-
-
-
-
-jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Delta Betweenness Scatterplot HCSF.jpg", width= 12, height= 6, res=800, units="in")
-ggplot(betweenness_ngg, aes(x = Node, y = Mean, shape = Node)) +
-  geom_point(size = 5, aes(color = Type, fill = Type) ,alpha = .8, position = position_dodge(width = 0.015), show.legend = FALSE) +
-  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) +
-  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
-  ylim(-.5, .5) +
-  labs(x = "Node", y = expression(paste(Delta, " Betweenness"))) +
-  geom_hline(yintercept = 0, linetype = 2, colour = "red") +
-  theme_light(base_size = 20) + 
-   theme(plot.title = element_text(hjust = 0.5))
-dev.off()
-
-
-## Strength ##
 
 # Data frame with strength deltas (Redundant - True)
 sdeltas <- data.frame(
-  strength = local_metrics[, (nv + 1): (2*nv), "Strength"] - local_metrics[, 1:nv, "Strength"]
+  Strength = local_metrics[, (nv + 1):(2*nv), "Strength"] - local_metrics[, 1:nv, "Strength"],
+  Strength.wo = local_metrics[, (nv + 1):(2*nv), "Strength w/o Clone"] - local_metrics[, 1:nv, "Strength w/o Clone"]
 )
 
 # Rename columns of data frame
-colnames(sdeltas) <- c(paste0("P", 1:(nv-1)), "Target")
+colnames(sdeltas) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
 
 # Convert to long data frame
-sdeltas_long <- pivot_longer(sdeltas, cols = c("P1", "P2", "P3", "Target"))
+sdeltas.long <- pivot_longer(sdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
 
-colnames(sdeltas_long) <- c("Node", "Strength_Delta")
-sdeltas_long$Node = factor(sdeltas_long$Node, levels = c("P1", "P2", "P3", "Target"))
+# Rename columns of long data frame
+colnames(sdeltas.long) <- c("Node", "Strength.Delta")
 
-mean_sdeltas = tapply(X = sdeltas_long$Strength_Delta, INDEX = sdeltas_long$Node,
-                      FUN = mean)
-sd_sdeltas = tapply(X = sdeltas_long$Strength_Delta, INDEX = sdeltas_long$Node,
-                      FUN = sd)
-sd_sdeltas
+# Factor variable "Node"
+sdeltas.long$Node = factor(sdeltas.long$Node, levels = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
 
-
-sdeltas_gg <- data.frame(
-  Node = names(mean_sdeltas),
-  Mean = as.vector(mean_sdeltas),
-  SE = (as.vector(sd_sdeltas))/sqrt(1000)
-)
+# Use tapply() to obtain measures of central tendency
+mean.sdeltas = tapply(X = sdeltas.long$Strength.Delta, INDEX = sdeltas.long$Node, FUN = mean)
+sd.sdeltas = tapply(X = sdeltas.long$Strength.Delta, INDEX = sdeltas.long$Node,FUN = sd)
 
 
+# Data frame ready for ggplot 
+sdeltas.gg <- data.frame(
+  Node = names(mean.sdeltas),
+  Mean = as.vector(mean.sdeltas),
+  SE = (as.vector(sd.sdeltas))/sqrt(1000))
 
-# Add additional categorical variable
-strength_ngg$Type <- c(rep("Without Clone", nv), rep("With Clone", nv))
+# Add grouping column for fill and color
 
+sdeltas.gg$Type = c(rep("With Clone", nv), rep("Without Clone", nv))
 
-strength_ngg$Node <- factor(strength_gg$Node, levels = c(paste0("P", 1:(nv-1)), "Target",paste0("P", 1:(nv-1), ".r"), "Target.r"))
+# Match using gsub() any node that ends with ".wo" and remove for ggplot
 
+sdeltas.gg$Node = gsub("\\.wo$", "", sdeltas.gg$Node)
 
-jpeg("/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/Output/Delta Strength Scatterplot HCSF.jpg", width= 12, height= 6, res=800, units="in")
-ggplot(strength_ngg, aes(x = Node, y = Mean, shape = Node)) +
-  geom_point(size = 5, aes(color = Type, fill = Type), alpha = .8, show.legend = FALSE) +
-  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) + 
+# Plot using ggplot2
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Delta Strength Plot (Redundancy).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+ggplot(sdeltas.gg, aes(x = Node, y = Mean, shape = Node)) +
+  geom_point(size = 5, aes(fill = Type, color = Type), 
+             alpha = .8, show.legend = TRUE) +
+  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) +
   geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
-  ylim(-.4, .4) + 
-  labs(x = "Node", y = expression(paste(Delta, " Strength"))) +
-  geom_hline(yintercept = 0, linetype = 2, colour = "red") +
-    theme_light(base_size = 20) +
-   theme(plot.title = element_text(hjust = 0.5)) +
-theme(
-    plot.title = element_text(hjust = 0.5),
-    legend.position = "top",
-    legend.direction = "horizontal",
-    legend.box = "horizontal"
-  ) +
-  guides(fill = guide_legend(nrow = 1))
+  ylim(-.5, .5) +
+  labs(x = "Node",
+       y = expression(paste(Delta, " Strength"))) +
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "red") +
+  
+  theme_minimal(base_size = 20) +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "right",
+        legend.direction = "vertical",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8),
+        legend.background = element_rect(color = "lightgrey"),
+        legend.spacing.y = unit(1, "cm")) +
+  guides(fill = guide_legend(byrow = TRUE),
+         shape = guide_legend(byrow = TRUE,
+                              override.aes = list(size = 4)))
 dev.off()
 ```
 
-#### Global Metrics
+
+### Expected Influence (Redundancy)
+
+```{r}
+# Data frame with Expected Influence deltas (Redundant - True)
+eideltas <- data.frame(
+  Expected.Influence = local_metrics[, (nv + 1):(2*nv), "Expected Influence"] - local_metrics[, 1:nv, "Expected Influence"],
+  Expected.Influence.wo = local_metrics[, (nv + 1):(2*nv), "Expected Influence w/o Clone"] - local_metrics[, 1:nv, "Expected Influence w/o Clone"]
+)
+
+# Rename columns of data frame
+colnames(eideltas) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
+
+# Convert to long data frame
+eideltas.long <- pivot_longer(eideltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+
+# Rename columns of long data frame
+colnames(eideltas.long) <- c("Node", "Expected.Influence.Delta")
+
+# Factor variable "Node"
+eideltas.long$Node = factor(eideltas.long$Node, levels = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+
+# Remove NAs, as there were 4 
+eideltas.long = na.omit(eideltas.long)
+head(eideltas.long)
+# Use tapply() to obtain measures of central tendency
+mean.eideltas = tapply(X = eideltas.long$Expected.Influence.Delta, INDEX = eideltas.long$Node, FUN = mean)
+sd.eideltas = tapply(X = eideltas.long$Expected.Influence.Delta, INDEX = eideltas.long$Node,FUN = sd)
+
+
+# Data frame ready for ggplot 
+eideltas.gg <- data.frame(
+  Node = names(mean.eideltas),
+  Mean = as.vector(mean.eideltas),
+  SE = (as.vector(sd.eideltas))/sqrt(1000))
+
+# Add grouping column for fill and color
+
+eideltas.gg$Type = c(rep("With Clone", nv), rep("Without Clone", nv))
+
+# Match using gsub() any node that ends with ".wo" and remove for ggplot
+
+eideltas.gg$Node = gsub("\\.wo$", "", eideltas.gg$Node)
+
+# Plot using ggplot2
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Delta Expected Influence Plot (Redundancy).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+ggplot(eideltas.gg, aes(x = Node, y = Mean, shape = Node)) +
+  geom_point(size = 5, aes(fill = Type, color = Type), 
+             alpha = .8, show.legend = TRUE) +
+  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) +
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
+  ylim(-.5, .5) +
+  labs(x = "Node",
+       y = expression(paste(Delta, " Expected Influence"))) +
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "red") +
+  
+  theme_minimal(base_size = 20) +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "right",
+        legend.direction = "vertical",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8),
+        legend.background = element_rect(color = "lightgrey"),
+        legend.spacing.y = unit(1, "cm")) +
+  guides(fill = guide_legend(byrow = TRUE),
+         shape = guide_legend(byrow = TRUE,
+                              override.aes = list(size = 4)))
+dev.off()
+```
+
+
+### Closeness (Redundancy)
+
+```{r}
+
+# Data frame with closeness deltas (Redundant - True)
+cdeltas <- data.frame(
+  Closeness = local_metrics[, (nv + 1):(2*nv), "Closeness"] - local_metrics[, 1:nv, "Closeness"],
+  Closeness.wo = local_metrics[, (nv + 1):(2*nv), "Closeness w/o Clone"] - local_metrics[, 1:nv, "Closeness w/o Clone"]
+)
+
+# Rename columns of data frame
+colnames(cdeltas) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
+
+# Convert to long data frame
+cdeltas.long <- pivot_longer(cdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+
+# Rename columns of long data frame
+colnames(cdeltas.long) <- c("Node", "Closeness.Delta")
+
+# Factor variable "Node"
+cdeltas.long$Node = factor(cdeltas.long$Node, levels = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+
+# Remove NAs, as there were 4 
+cdeltas.long = na.omit(cdeltas.long)
+
+# Use tapply() to obtain measures of central tendency
+mean.cdeltas = tapply(X = cdeltas.long$Closeness.Delta, INDEX = cdeltas.long$Node, FUN = mean)
+sd.cdeltas = tapply(X = cdeltas.long$Closeness.Delta, INDEX = cdeltas.long$Node,FUN = sd)
+
+
+# Data frame ready for ggplot 
+cdeltas.gg <- data.frame(
+  Node = names(mean.cdeltas),
+  Mean = as.vector(mean.cdeltas),
+  SE = (as.vector(sd.cdeltas))/sqrt(1000))
+
+# Add grouping column for fill and color
+
+cdeltas.gg$Type = c(rep("With Clone", nv), rep("Without Clone", nv))
+
+# Match using gsub() any node that ends with ".wo" and remove for ggplot
+
+cdeltas.gg$Node = gsub("\\.wo$", "", cdeltas.gg$Node)
+
+# Plot using ggplot2
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Delta Closeness Plot (Redundancy).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+ggplot(cdeltas.gg, aes(x = Node, y = Mean, shape = Node)) +
+  geom_point(size = 5, aes(fill = Type, color = Type), 
+             alpha = .8, show.legend = TRUE) +
+  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) +
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
+  ylim(-.5, .5) +
+  labs(x = "Node",
+       y = expression(paste(Delta, " Closeness"))) +
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "red") +
+  
+  theme_minimal(base_size = 20) +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "right",
+        legend.direction = "vertical",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8),
+        legend.background = element_rect(color = "lightgrey"),
+        legend.spacing.y = unit(1, "cm")) +
+  guides(fill = guide_legend(byrow = TRUE),
+         shape = guide_legend(byrow = TRUE,
+                              override.aes = list(size = 4)))
+dev.off()
+```
+
+
+### Betweenness (Redundancy) 
+
+```{r}
+# Data frame with Betweenness deltas (Redundant - True)
+bdeltas <- data.frame(
+  Betweenness = local_metrics[, (nv + 1):(2*nv), "Betweenness"] - local_metrics[, 1:nv, "Betweenness"],
+  Betweenness.wo = local_metrics[, (nv + 1):(2*nv), "Betweenness w/o Clone"] - local_metrics[, 1:nv, "Betweenness w/o Clone"]
+)
+
+# Rename columns of data frame
+colnames(bdeltas) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
+
+# Convert to long data frame
+bdeltas.long <- pivot_longer(bdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+
+# Rename columns of long data frame
+colnames(bdeltas.long) <- c("Node", "Betweenness.Delta")
+
+# Factor variable "Node"
+bdeltas.long$Node = factor(bdeltas.long$Node, levels = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+
+# Remove NAs, as there were 4 
+bdeltas.long = na.omit(bdeltas.long)
+
+# Use tapply() to obtain measures of central tendency
+mean.bdeltas = tapply(X = bdeltas.long$Betweenness.Delta, INDEX = bdeltas.long$Node, FUN = mean)
+sd.bdeltas = tapply(X = bdeltas.long$Betweenness.Delta, INDEX = bdeltas.long$Node,FUN = sd)
+
+
+# Data frame ready for ggplot 
+bdeltas.gg <- data.frame(
+  Node = names(mean.bdeltas),
+  Mean = as.vector(mean.bdeltas),
+  SE = (as.vector(sd.bdeltas))/sqrt(1000))
+
+# Add grouping column for fill and color
+
+bdeltas.gg$Type = c(rep("With Clone", nv), rep("Without Clone", nv))
+
+# Match using gsub() any node that ends with ".wo" and remove for ggplot
+
+bdeltas.gg$Node = gsub("\\.wo$", "", bdeltas.gg$Node)
+
+# Plot using ggplot2
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Delta Betweenness Plot (Redundancy).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+ggplot(bdeltas.gg, aes(x = Node, y = Mean, shape = Node)) +
+  geom_point(size = 5, aes(fill = Type, color = Type), 
+             alpha = .8, show.legend = TRUE) +
+  scale_shape_manual(values = c("P1" = 21, "P2" = 22, "P3" = 23, "Target" = 24)) +
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), linewidth = .25, width = .15) +
+  ylim(-.5, .5) +
+  labs(x = "Node",
+       y = expression(paste(Delta, " Betweenness"))) +
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "red") +
+  
+  theme_minimal(base_size = 20) +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "right",
+        legend.direction = "vertical",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8),
+        legend.background = element_rect(color = "lightgrey"),
+        legend.spacing.y = unit(1, "cm")) +
+  guides(fill = guide_legend(byrow = TRUE),
+         shape = guide_legend(byrow = TRUE,
+                              override.aes = list(size = 4)))
+dev.off()
+```
+
+
+
+
+
+
+## Global Metrics
+
+### Weighted Density
+
+```{r}
+# Convenience
+common_theme = theme(
+  axis.title.y = element_blank(), 
+  axis.ticks.y = element_blank(),  
+  plot.title = element_text(hjust = 0.5),   
+  legend.position = "right",        
+  legend.box = "vertical",
+  legend.justification = "center"   
+)
+
+## Redundant network
+
+ggWD = data.frame(
+  True.Network = global_metrics[,1,"Weighted Density"],
+  Redundant.Network = global_metrics[,2,"Weighted Density"],
+  Redundant.Network.Without.Clone = global_metrics[,3,"Weighted Density"])
+
+stacked_WD = stack(x = ggWD, select = c("True.Network", "Redundant.Network", "Redundant.Network.Without.Clone"))
+
+# Basic density ridge plot
+
+# ggplot(stacked_df, aes(x = values,
+#                        y = ind,
+#                        fill = ind)) +
+#   geom_density_ridges(quantile_lines = TRUE,
+#                       quantiles = c(0.025, 0.975),
+#                       alpha = 0.7) +
+#   theme_minimal()
+
+# Quartile ridgeline plot
+p1 = ggplot(stacked_WD, aes(x = values,
+                       y = ind,
+                       fill = factor(stat(quantile)))) +
+  stat_density_ridges(geom = "density_ridges_gradient",
+                             calc_ecdf = TRUE,
+                             quantiles = 4,
+                             quantile_lines = TRUE) + 
+  scale_fill_viridis_d(name = "Quartiles") +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redundant Network w/o Clone")) +
+  scale_x_continuous(limits = c(0.1,.5)) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") + 
+  common_theme
+
+
+# Jitter ridgeline plot
+p3 = ggplot(stacked_WD, aes(x = values,
+                       y = ind,
+                       fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  scale_x_continuous(limits = c(0.1,.5)) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme +
+  theme(legend.position = "none")
+
+
+
+
+## Random Network
+
+ggWD.random = data.frame(
+  True.Network = global_metrics_random[,1,"Weighted Density"],
+  Random.Network = global_metrics_random[,2,"Weighted Density"],
+  Random.Network.Without.Random = global_metrics_random[,3,"Weighted Density"])
+
+stacked_WD_random = stack(x = ggWD.random, select = c("True.Network", "Random.Network", "Random.Network.Without.Random"))
+
+# Quartile ridgeline plot
+p2  = ggplot(stacked_WD_random, aes(x = values,
+                       y = ind,
+                       fill = factor(stat(quantile)))) +
+  stat_density_ridges(geom = "density_ridges_gradient",
+                             calc_ecdf = TRUE,
+                             quantiles = 4,
+                             quantile_lines = TRUE) + 
+  scale_fill_viridis_d(name = "Quartiles") +
+  scale_y_discrete(labels = c("True Network",
+                              "Random Network",
+                              "Random Network w/o additional node")) +
+  scale_x_continuous(limits = c(0.1,.5)) +
+  labs(x = "Weighted Density",
+       y = "Network") +
+  common_theme
+
+# Jitter ridgeline plot
+
+p4 = ggplot(stacked_WD_random, aes(x = values,
+                       y = ind,
+                       fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_x_continuous(limits = c(0.1,.5)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Random Network",
+                              "Random Network w/o additional node")) +
+  labs(x = "Weighted Density",
+       y = "Network") +
+  common_theme +
+  theme(legend.position = "none")
+
+```
+
+
+### Patchwork Plots
+
+```{r}
+# Quartile
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (Quartile).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+p1/p2 +
+  plot_layout(guides = "collect")
+dev.off()
+
+# Jitter
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (Jitter).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+p3/p4 + 
+  plot_layout(guides = "collect")
+dev.off()
+```
+
+
+### APL
 
 ```{r}
 
 ```
+
+### Patchwork Plots
+```{r}
+
+```
+
+
 
 
 
