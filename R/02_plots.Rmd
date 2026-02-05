@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Load Packages
+
 ```{r message = FALSE}
 package.list = c("ggplot2","tidyr", "ggridges",
                  "patchwork")
@@ -26,24 +27,24 @@ package.list = c("ggplot2","tidyr", "ggridges",
 
 ## Local Metrics Plots
 
-#### Strength (Redundancy) |Psych Version|
+#### Strength (Redundancy) \|Psych Version\|
 
 ```{r}
 
 # Data frame with strength deltas (Redundant - True)
-sdeltas <- data.frame(
+sdeltas = data.frame(
   Strength = local_metrics[, (nv + 1):(2*nv), "Strength"] - local_metrics[, 1:nv, "Strength"],
   Strength.wo = local_metrics[, (nv + 1):(2*nv), "Strength w/o Clone"] - local_metrics[, 1:nv, "Strength w/o Clone"]
 )
 
 # Rename columns of data frame
-colnames(sdeltas) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
+colnames(sdeltas) = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
 
 # Convert to long data frame
-sdeltas.long <- pivot_longer(sdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+sdeltas.long = pivot_longer(sdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
 
 # Rename columns of long data frame
-colnames(sdeltas.long) <- c("Node", "Strength.Delta")
+colnames(sdeltas.long) = c("Node", "Strength.Delta")
 
 # Factor variable "Node"
 sdeltas.long$Node = factor(sdeltas.long$Node, levels = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
@@ -54,7 +55,7 @@ sd.sdeltas = tapply(X = sdeltas.long$Strength.Delta, INDEX = sdeltas.long$Node,F
 
 
 # Data frame ready for ggplot 
-sdeltas.gg <- data.frame(
+sdeltas.gg = data.frame(
   Node = names(mean.sdeltas),
   Mean = as.vector(mean.sdeltas),
   SE = (as.vector(sd.sdeltas))/sqrt(1000))
@@ -100,24 +101,23 @@ ggplot(sdeltas.gg, aes(x = Node, y = Mean, shape = Node)) +
 dev.off()
 ```
 
-
 ### Expected Influence (Redundancy)
 
 ```{r}
 # Data frame with Expected Influence deltas (Redundant - True)
-eideltas <- data.frame(
+eideltas = data.frame(
   Expected.Influence = local_metrics[, (nv + 1):(2*nv), "Expected Influence"] - local_metrics[, 1:nv, "Expected Influence"],
   Expected.Influence.wo = local_metrics[, (nv + 1):(2*nv), "Expected Influence w/o Clone"] - local_metrics[, 1:nv, "Expected Influence w/o Clone"]
 )
 
 # Rename columns of data frame
-colnames(eideltas) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
+colnames(eideltas) = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
 
 # Convert to long data frame
-eideltas.long <- pivot_longer(eideltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+eideltas.long = pivot_longer(eideltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
 
 # Rename columns of long data frame
-colnames(eideltas.long) <- c("Node", "Expected.Influence.Delta")
+colnames(eideltas.long) = c("Node", "Expected.Influence.Delta")
 
 # Factor variable "Node"
 eideltas.long$Node = factor(eideltas.long$Node, levels = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
@@ -131,7 +131,7 @@ sd.eideltas = tapply(X = eideltas.long$Expected.Influence.Delta, INDEX = eidelta
 
 
 # Data frame ready for ggplot 
-eideltas.gg <- data.frame(
+eideltas.gg = data.frame(
   Node = names(mean.eideltas),
   Mean = as.vector(mean.eideltas),
   SE = (as.vector(sd.eideltas))/sqrt(1000))
@@ -177,25 +177,24 @@ ggplot(eideltas.gg, aes(x = Node, y = Mean, shape = Node)) +
 dev.off()
 ```
 
-
 ### Closeness (Redundancy)
 
 ```{r}
 
 # Data frame with closeness deltas (Redundant - True)
-cdeltas <- data.frame(
+cdeltas = data.frame(
   Closeness = local_metrics[, (nv + 1):(2*nv), "Closeness"] - local_metrics[, 1:nv, "Closeness"],
   Closeness.wo = local_metrics[, (nv + 1):(2*nv), "Closeness w/o Clone"] - local_metrics[, 1:nv, "Closeness w/o Clone"]
 )
 
 # Rename columns of data frame
-colnames(cdeltas) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
+colnames(cdeltas) = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
 
 # Convert to long data frame
-cdeltas.long <- pivot_longer(cdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+cdeltas.long = pivot_longer(cdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
 
 # Rename columns of long data frame
-colnames(cdeltas.long) <- c("Node", "Closeness.Delta")
+colnames(cdeltas.long) = c("Node", "Closeness.Delta")
 
 # Factor variable "Node"
 cdeltas.long$Node = factor(cdeltas.long$Node, levels = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
@@ -209,7 +208,7 @@ sd.cdeltas = tapply(X = cdeltas.long$Closeness.Delta, INDEX = cdeltas.long$Node,
 
 
 # Data frame ready for ggplot 
-cdeltas.gg <- data.frame(
+cdeltas.gg = data.frame(
   Node = names(mean.cdeltas),
   Mean = as.vector(mean.cdeltas),
   SE = (as.vector(sd.cdeltas))/sqrt(1000))
@@ -255,24 +254,23 @@ ggplot(cdeltas.gg, aes(x = Node, y = Mean, shape = Node)) +
 dev.off()
 ```
 
-
-### Betweenness (Redundancy) 
+### Betweenness (Redundancy)
 
 ```{r}
 # Data frame with Betweenness deltas (Redundant - True)
-bdeltas <- data.frame(
+bdeltas = data.frame(
   Betweenness = local_metrics[, (nv + 1):(2*nv), "Betweenness"] - local_metrics[, 1:nv, "Betweenness"],
   Betweenness.wo = local_metrics[, (nv + 1):(2*nv), "Betweenness w/o Clone"] - local_metrics[, 1:nv, "Betweenness w/o Clone"]
 )
 
 # Rename columns of data frame
-colnames(bdeltas) <- c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
+colnames(bdeltas) = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo")
 
 # Convert to long data frame
-bdeltas.long <- pivot_longer(bdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
+bdeltas.long = pivot_longer(bdeltas, cols = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
 
 # Rename columns of long data frame
-colnames(bdeltas.long) <- c("Node", "Betweenness.Delta")
+colnames(bdeltas.long) = c("Node", "Betweenness.Delta")
 
 # Factor variable "Node"
 bdeltas.long$Node = factor(bdeltas.long$Node, levels = c(paste0("P", 1:(nv-1)), "Target", paste0("P", 1:(nv-1), ".wo"), "Target.wo"))
@@ -286,7 +284,7 @@ sd.bdeltas = tapply(X = bdeltas.long$Betweenness.Delta, INDEX = bdeltas.long$Nod
 
 
 # Data frame ready for ggplot 
-bdeltas.gg <- data.frame(
+bdeltas.gg = data.frame(
   Node = names(mean.bdeltas),
   Mean = as.vector(mean.bdeltas),
   SE = (as.vector(sd.bdeltas))/sqrt(1000))
@@ -331,11 +329,6 @@ ggplot(bdeltas.gg, aes(x = Node, y = Mean, shape = Node)) +
                               override.aes = list(size = 4)))
 dev.off()
 ```
-
-
-
-
-
 
 ## Global Metrics
 
@@ -388,6 +381,7 @@ p1 = ggplot(stacked_WD, aes(x = values,
        y = "Network",
        title = "Weighted Density Ridgeline Plot") + 
   common_theme
+
 
 
 # Jitter ridgeline plot
@@ -465,7 +459,6 @@ p4 = ggplot(stacked_WD_random, aes(x = values,
 
 ```
 
-
 ### Patchwork Plots
 
 ```{r}
@@ -490,7 +483,6 @@ p3/p4 +
 dev.off()
 ```
 
-
 ### APL
 
 ```{r}
@@ -498,19 +490,905 @@ dev.off()
 ```
 
 ### Patchwork Plots
+
 ```{r}
 
 ```
 
+# Final Simulation Plots
+
+```{r}
+data = readRDS("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/Simulation Results/simulation.results.rds")
+
+
+# Prepare data for plotting 
+# First I will load packages
+package.list = c("ggplot2", "tidyr", "ggridges",
+                 "patchwork", "dplyr", "purrr", "stringr")
+
+invisible(sapply(package.list, function(package){
+  if(!require(package, character.only = TRUE)){
+    install.packages(package, dependencies = TRUE)
+  }
+  library(package, character.only = TRUE)
+}))
+
+# Learn to subset properly from a list 
+View(data) # To easily see each condition
+
+# Extract an array (1st condition/first array)
+dim(data[[1]]$local.metrics)[2]
+
+
+
+compute.avg.diffs = function(array, node.names = NULL) {
+
+  n.nodes = dim(array)[2]
+  p = (n.nodes - 1) / 2
+
+  if (p %% 1 != 0) {
+    stop("Column structure is not (peripheral, redundant, clone/random)")
+  }
+
+  orig.idx = 1:p
+  red.idx  = (p + 1):(2 * p)
+
+  diffs = array[, red.idx, ] - array[, orig.idx, ]
+  avg.diffs = apply(diffs, c(2, 3), mean, na.rm = TRUE)
+
+  df = as.data.frame(avg.diffs)
+
+  if (!is.null(node.names)) {
+    if (length(node.names) != p) {
+      stop("node_names length does not match number of original nodes")
+    }
+    rownames(df) = node.names
+  }
+
+  df
+}
+
+
+
+# SDs
+
+compute.sd.diffs = function(array, node.names = NULL) {
+
+  n.nodes = dim(array)[2]
+  p = (n.nodes - 1) / 2
+
+  if (p %% 1 != 0) {
+    stop("Column structure is not (peripheral, redundant, clone/random)")
+  }
+
+  orig.idx = 1:p
+  red.idx  = (p + 1):(2 * p)
+
+  diffs = array[, red.idx, ] - array[, orig.idx, ]
+  sd.diffs = apply(diffs, c(2, 3), sd, na.rm = TRUE)
+
+  df = as.data.frame(sd.diffs)
+
+  if (!is.null(node.names)) {
+    if (length(node.names) != p) {
+      stop("node_names length does not match number of original nodes")
+    }
+    rownames(df) = node.names
+  }
+
+  df
+}
+
+# mean results 
+
+diff.results = lapply(data, function(cond) {
+
+  df.local = compute.avg.diffs(cond$local.metrics)
+  df.random = compute.avg.diffs(cond$local.metrics.random)
+
+  list(
+    condition = cond$condition,
+    local     = df.local,
+    random    = df.random
+  )
+})
+
+# SDs
+
+diff.results.sd = lapply(data, function(cond) {
+
+  df.local = compute.sd.diffs(cond$local.metrics)
+  df.random = compute.sd.diffs(cond$local.metrics.random)
+
+  list(
+    condition = cond$condition,
+    local     = df.local,
+    random    = df.random
+  )
+})
+
+
+## Function to collapse peripheral nodes 1-9
+
+
+# Function to manually do everything
+collapse.peripherals = function(df){
+  n = nrow(df)
+# Get all peripheral nodes
+  peripherals = 1:(n-1)
+# Target node
+  target = n
+# Collapse all peripheral nodes into their mean and combine rows
+  collapsed = rbind(
+    colMeans(df[peripherals, , drop = FALSE]),
+    df[target, , drop = F])
+  rownames(collapsed) = c("Peripheral Nodes", "Target")
+  collapsed
+}
+
+
+# Collapsed results for means
+
+local.results.c = lapply(diff.results, function(x){
+  x$local = collapse.peripherals(x$local)
+  x$random = collapse.peripherals(x$random)
+  x
+})
+
+
+# Collapsed results for sds
+
+local.results.csd = lapply(diff.results.sd, function(x){
+  x$local = collapse.peripherals(x$local)
+  x$random = collapse.peripherals(x$random)
+  x
+})
+
+
+
+```
+
+```{r}
+## Get ready for plotting 
+
+
+df.ei = map_dfr(local.results.c, function(x){
+  cond = x$condition
+  df = x$local
+  
+  tibble(
+    nv = cond$nv,
+    sd = cond$sd,
+    clone.loading = cond$clone.loading,
+    
+    `Peripheral Nodes` = df["Peripheral Nodes", "Expected Influence"],
+    `Target` = df["Target", "Expected Influence"],
+    `Target w/o Clone` = df["Target", "Expected Influence w/o Clone"]
+  ) |> 
+    pivot_longer(
+      cols = c(`Peripheral Nodes`, `Target`,`Target w/o Clone`),
+               names_to = "node.type",
+               values_to ="expected.influence")
+  
+})
+
+```
+
+```{r}
+
+
+
+df.metrics = map_dfr(local.results.c, function(x) {
+
+  cond = x$condition
+  df = x$local
+
+  # identify base metric names (without " w/o Clone")
+  metrics = unique(gsub(" w/o Clone", "", colnames(df)))
+
+  map_dfr(metrics, function(m) {
+    tibble(
+      nv = cond$nv,
+      sd = cond$sd,
+      clone.loading = cond$clone.loading,
+      metric = m,
+      `Peripheral Nodes` = df["Peripheral Nodes", m],
+      `Peripheral Nodes w/o Clone` = df["Peripheral Nodes",
+                                        paste0(m, " w/o Clone")],
+      `Target` = df["Target", m],
+      `Target w/o Clone` = df["Target", paste0(m, " w/o Clone")]
+    ) |>
+      pivot_longer(
+        cols = c(`Peripheral Nodes`, `Peripheral Nodes w/o Clone`,
+                 `Target`, `Target w/o Clone`),
+        names_to = "node.type",
+        values_to = "value"
+      )
+  })
+})
+
+
+df.metrics.sd = map_dfr(local.results.csd, function(x) {
+
+  cond = x$condition
+  df = x$local
+
+  # identify base metric names (without " w/o Clone")
+  metrics = unique(gsub(" w/o Clone", "", colnames(df)))
+
+  map_dfr(metrics, function(m) {
+    tibble(
+      nv = cond$nv,
+      sd = cond$sd,
+      clone.loading = cond$clone.loading,
+      metric = m,
+      `Peripheral Nodes` = df["Peripheral Nodes", m],
+      `Peripheral Nodes w/o Clone` = df["Peripheral Nodes",
+                                        paste0(m, " w/o Clone")],
+      `Target` = df["Target", m],
+      `Target w/o Clone` = df["Target", paste0(m, " w/o Clone")]
+    ) |>
+      pivot_longer(
+        cols = c(`Peripheral Nodes`, `Peripheral Nodes w/o Clone`,
+                 `Target`, `Target w/o Clone`),
+        names_to = "node.type",
+        values_to = "value"
+      )
+  })
+})
+
+
+
+```
+
+## Clone loading = .9
+
+### EI
+
+```{r}
+
+
+df.ei.09 = df.metrics |> 
+  filter(clone.loading == .9 & metric == "Expected Influence")
+
+df.sd = df.metrics.sd |> 
+  filter(clone.loading == 0.9, metric == "Expected Influence") |>
+  rename(sd_value = value)
+
+df.plot = df.ei.09 |> 
+  left_join(df.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+df.plot
+
+ggplot(df.plot, aes(x = node.type,
+                     y = value,
+                     color = factor(nv),
+                     group = interaction(node.type, nv))) +
+  geom_point(size = 3.5, aes(shape = node.type)) +
+  scale_shape_manual(
+  values = c(
+    "Peripheral Nodes" = 18,
+    "Peripheral Nodes w/o Clone" = 15,
+    "Target" = 16,            
+    "Target w/o Clone" = 17)) +
+  facet_wrap(~ sd,
+             nrow = 3,
+             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
+                    ymax = value + sd_value / sqrt(1000)),
+                width = 0.1, color = "black", linewidth = 0.3) +
+  labs(
+    x = "Node Type",
+    y = "Expected Influence",
+    color = "Network Size"
+  ) +
+  coord_cartesian(ylim = c(-0.5, 0.5)) +
+  guides(shape = "none") + 
+  theme_light() +
+  theme(
+    strip.text = element_text(face = "bold.italic"),
+    axis.text.x = element_text(angle = 20, hjust = 1))
+
+```
+
+### Strength
+
+```{r}
+df.s.09 = df.metrics |> 
+  filter(clone.loading == .9 & metric == "Strength")
+
+df.s.sd = df.metrics.sd |> 
+  filter(clone.loading == 0.9, metric == "Strength") |>
+  rename(sd_value = value)
+
+df.plot.s = df.s.09 |> 
+  left_join(df.s.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+
+
+ggplot(df.plot.s, aes(x = node.type,
+                     y = value,
+                     color = factor(nv),
+                     group = interaction(node.type, nv))) +
+  geom_point(size = 3.5, aes(shape = node.type)) +
+  scale_shape_manual(
+  values = c(
+    "Peripheral Nodes" = 18,
+    "Peripheral Nodes w/o Clone" = 15,
+    "Target" = 16,            
+    "Target w/o Clone" = 17)) +
+  facet_wrap(~ sd,
+             nrow = 3,
+             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
+                    ymax = value + sd_value / sqrt(1000)),
+                width = 0.1, color = "black", linewidth = 0.3) +
+  labs(
+    x = "Node Type",
+    y = "Strength",
+    color = "Network Size"
+  ) +
+  coord_cartesian(ylim = c(-1.5, 1.5)) +
+  guides(shape = "none") + 
+  theme_light() +
+  theme(
+    strip.text = element_text(face = "bold.italic"),
+    axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+### Closeness
+
+```{r}
+df.c.09 = df.metrics |> 
+  filter(clone.loading == .9 & metric == "Closeness")
+
+df.c.sd = df.metrics.sd |> 
+  filter(clone.loading == 0.9, metric == "Closeness") |>
+  rename(sd_value = value)
+
+df.plot.c = df.c.09 |> 
+  left_join(df.c.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+
+
+ggplot(df.plot.c, aes(x = node.type,
+                     y = value,
+                     color = factor(nv),
+                     group = interaction(node.type, nv))) +
+  geom_point(size = 3.5, aes(shape = node.type)) +
+  scale_shape_manual(
+  values = c(
+    "Peripheral Nodes" = 18,
+    "Peripheral Nodes w/o Clone" = 15,
+    "Target" = 16,            
+    "Target w/o Clone" = 17)) +
+  facet_wrap(~ sd,
+             nrow = 3,
+             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
+                    ymax = value + sd_value / sqrt(1000)),
+                width = 0.1, color = "black", linewidth = 0.3) +
+  labs(
+    x = "Node Type",
+    y = "Closeness",
+    color = "Network Size"
+  ) +
+  coord_cartesian(ylim = c(-.15, .15)) +
+  guides(shape = "none") + 
+  theme_light() +
+  theme(
+    strip.text = element_text(face = "bold.italic"),
+    axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+### Betweenness
+
+```{r}
+df.b.09 = df.metrics |> 
+  filter(clone.loading == .9 & metric == "Betweenness")
+
+df.b.sd = df.metrics.sd |> 
+  filter(clone.loading == 0.9, metric == "Betweenness") |>
+  rename(sd_value = value)
+
+df.plot.b = df.b.09 |> 
+  left_join(df.b.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+
+
+ggplot(df.plot.b, aes(x = node.type,
+                     y = value,
+                     color = factor(nv),
+                     group = interaction(node.type, nv))) +
+  geom_point(size = 3.5, aes(shape = node.type)) +
+  scale_shape_manual(
+  values = c(
+    "Peripheral Nodes" = 18,
+    "Peripheral Nodes w/o Clone" = 15,
+    "Target" = 16,            
+    "Target w/o Clone" = 17)) +
+  facet_wrap(~ sd,
+             nrow = 3,
+             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
+                    ymax = value + sd_value / sqrt(1000)),
+                width = 0.1, color = "black", linewidth = 0.3) +
+  labs(
+    x = "Node Type",
+    y = "Betweenness",
+    color = "Network Size"
+  ) +
+  coord_cartesian(ylim = c(-10, 10)) +
+  scale_y_continuous(breaks = c(-10, -5, 0, 5, 10)) +
+  guides(shape = "none") + 
+  theme_light() +
+  theme(
+    strip.text = element_text(face = "bold.italic"),
+    axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+## Clone Loading = .9 and .7
+
+### EI
+
+```{r}
+
+df.ei.loadings = df.metrics |> 
+  filter(clone.loading %in% c(.9, .7) & metric == "Expected Influence")
+
+df.ei.loadings.sd = df.metrics.sd |> 
+  filter(clone.loading %in% c(.9, .7), metric == "Expected Influence") |>  rename(sd_value = value)
+
+df.plot.ei = df.ei.loadings |> 
+  left_join(df.ei.loadings.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+
+
+ggplot(df.plot.ei, aes(x = node.type,
+                     y = value,
+                     color = factor(nv),
+                     group = interaction(node.type, nv))) +
+  geom_point(size = 3.5, aes(shape = node.type)) +
+  scale_shape_manual(
+  values = c(
+    "Peripheral Nodes" = 18,
+    "Peripheral Nodes w/o Clone" = 15,
+    "Target" = 16,            
+    "Target w/o Clone" = 17)) +
+  facet_wrap(~ sd + clone.loading,
+             nrow = 3,
+             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
+                    ymax = value + sd_value / sqrt(1000)),
+                width = 0.1, color = "black", linewidth = 0.3) +
+  labs(
+    x = "Node Type",
+    y = "Expected Influence",
+    color = "Network Size"
+  ) +
+  coord_cartesian(ylim = c(-0.5, 0.5)) +
+  guides(shape = "none") + 
+  theme_light() +
+  theme(
+    strip.text = element_text(face = "bold.italic"),
+    axis.text.x = element_text(angle = 20, hjust = 1))
+
+
+
+```
+
+### Strength
+
+```{r}
+df.s.loadings = df.metrics |> 
+  filter(clone.loading %in% c(.9, .7) & metric == "Strength")
+
+df.s.loadings.sd = df.metrics.sd |> 
+  filter(clone.loading %in% c(.9, .7), metric == "Strength") |> 
+  rename(sd_value = value)
+
+df.plot.s = df.s.loadings |> 
+  left_join(df.s.loadings.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+
+
+ggplot(df.plot.s, aes(x = node.type,
+                     y = value,
+                     color = factor(nv),
+                     group = interaction(node.type, nv))) +
+  geom_point(size = 3.5, aes(shape = node.type)) +
+  scale_shape_manual(
+  values = c(
+    "Peripheral Nodes" = 18,
+    "Peripheral Nodes w/o Clone" = 15,
+    "Target" = 16,            
+    "Target w/o Clone" = 17)) +
+  facet_wrap(~ sd + clone.loading,
+             nrow = 3,
+             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
+                    ymax = value + sd_value / sqrt(1000)),
+                width = 0.1, color = "black", linewidth = 0.3) +
+  labs(
+    x = "Node Type",
+    y = "Strength",
+    color = "Network Size"
+  ) +
+  coord_cartesian(ylim = c(-1.5, 1.5)) +
+  guides(shape = "none") + 
+  theme_light() +
+  theme(
+    strip.text = element_text(face = "bold.italic"),
+    axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+### Closeness
+
+```{r}
+df.c.loadings = df.metrics |> 
+  filter(clone.loading %in% c(.9, .7) & metric == "Closeness")
+
+df.c.loadings.sd = df.metrics.sd |> 
+  filter(clone.loading %in% c(.9, .7), metric == "Closeness") |> 
+  rename(sd_value = value)
+
+df.plot.c = df.c.loadings |> 
+  left_join(df.c.loadings.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+
+
+ggplot(df.plot.c, aes(x = node.type,
+                     y = value,
+                     color = factor(nv),
+                     group = interaction(node.type, nv))) +
+  geom_point(size = 3.5, aes(shape = node.type)) +
+  scale_shape_manual(
+  values = c(
+    "Peripheral Nodes" = 18,
+    "Peripheral Nodes w/o Clone" = 15,
+    "Target" = 16,            
+    "Target w/o Clone" = 17)) +
+  facet_wrap(~ sd + clone.loading,
+             nrow = 3,
+             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
+                    ymax = value + sd_value / sqrt(1000)),
+                width = 0.1, color = "black", linewidth = 0.3) +
+  labs(
+    x = "Node Type",
+    y = "Closeness",
+    color = "Network Size"
+  ) +
+  coord_cartesian(ylim = c(-.15, .15)) +
+  guides(shape = "none") + 
+  theme_light() +
+  theme(
+    strip.text = element_text(face = "bold.italic"),
+    axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+### Betweenness
+
+```{r}
+df.b.loadings = df.metrics |> 
+  filter(clone.loading %in% c(.9, .7) & metric == "Betweenness")
+
+df.b.loadings.sd = df.metrics.sd |> 
+  filter(clone.loading %in% c(.9, .7), metric == "Betweenness") |> 
+  rename(sd_value = value)
+
+df.plot.b = df.b.loadings |> 
+  left_join(df.b.loadings.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+
+
+ggplot(df.plot.b, aes(x = node.type,
+                     y = value,
+                     color = factor(nv),
+                     group = interaction(node.type, nv))) +
+  geom_point(size = 3.5, aes(shape = node.type)) +
+  scale_shape_manual(
+  values = c(
+    "Peripheral Nodes" = 18,
+    "Peripheral Nodes w/o Clone" = 15,
+    "Target" = 16,            
+    "Target w/o Clone" = 17)) +
+  facet_wrap(~ sd + clone.loading,
+             nrow = 3,
+             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
+                    ymax = value + sd_value / sqrt(1000)),
+                width = 0.1, color = "black", linewidth = 0.3) +
+  labs(
+    x = "Node Type",
+    y = "Betweenness",
+    color = "Network Size"
+  ) +
+  coord_cartesian(ylim = c(-17, 17)) +
+  scale_y_continuous(breaks = c(-17, -10, -5, 0, 5, 10, 17)) +
+  guides(shape = "none") + 
+  theme_light() +
+  theme(
+    strip.text = element_text(face = "bold.italic"),
+    axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+## Random Network, Loading = .9
+
+```{r}
+# Random Mean results 
+df.metrics = map_dfr(local.results.c, function(x) {
+
+  cond = x$condition
+  df = x$local
+
+  # identify base metric names (without " w/o Clone")
+  metrics = unique(gsub(" w/o Clone", "", colnames(df)))
+
+  map_dfr(metrics, function(m) {
+    tibble(
+      nv = cond$nv,
+      sd = cond$sd,
+      clone.loading = cond$clone.loading,
+      metric = m,
+      `Peripheral Nodes` = df["Peripheral Nodes", m],
+      `Peripheral Nodes w/o Clone` = df["Peripheral Nodes",
+                                        paste0(m, " w/o Clone")],
+      `Target` = df["Target", m],
+      `Target w/o Clone` = df["Target", paste0(m, " w/o Clone")]
+    ) |>
+      pivot_longer(
+        cols = c(`Peripheral Nodes`, `Peripheral Nodes w/o Clone`,
+                 `Target`, `Target w/o Clone`),
+        names_to = "node.type",
+        values_to = "value"
+      )
+  })
+})
+```
+
+
+# Global Metrics
+
+## Weighted Density C1
+
+```{r}
+# Subset each array for global metrics
+
+global.metrics = lapply(data, function(x){
+  list(
+   condition =  x[[1]],
+   global = x[[3]])
+})
+
+wd.1 = as.data.frame(global.metrics[[1]]$global[,,"Weighted Density"])
+
+
+stacked.wd.1 = stack(x = wd.1, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
 
 
 
 
+common_theme = theme(
+  axis.title.y = element_blank(), 
+  axis.ticks.y = element_blank(),  
+  plot.title = element_text(hjust = 0.5),   
+  legend.position = "right",        
+  legend.box = "vertical",
+  legend.justification = "center"   
+)
+
+# Jitter ridgeline plot
+p1 = ggplot(stacked.wd.1, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  scale_x_continuous(limits = c(0.1,.3)) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme + 
+  theme(legend.position = "none")
+
+
+```
+
+## APL C1
+
+```{r}
+
+
+apl.1 = as.data.frame(global.metrics[[1]]$global[,,"APL"])
+
+
+stacked.apl.1 = stack(x = apl.1, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+min(stacked.apl.1$values)
+
+common_theme = theme(
+  axis.title.y = element_blank(), 
+  axis.ticks.y = element_blank(),  
+  plot.title = element_text(hjust = 0.5),   
+  legend.position = "right",        
+  legend.box = "vertical",
+  legend.justification = "center"   
+)
+
+# Jitter ridgeline plot
+p2 = ggplot(stacked.apl.1, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  scale_x_continuous(limits = c(0,12)) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+  theme(legend.position = "none")
+p2
+```
+
+
+## Weighted Density C2
+
+```{r}
+wd.2 = as.data.frame(global.metrics[[2]]$global[,,"Weighted Density"])
+
+
+stacked.wd.2 = stack(x = wd.2, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
 
 
 
+# Jitter ridgeline plot
+p3 = ggplot(stacked.wd.2, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  scale_x_continuous(limits = c(0.1,.25)) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme + 
+  theme(legend.position = "none")
+
+```
+
+## APL C2
+
+```{r}
+apl.2 = as.data.frame(global.metrics[[2]]$global[,,"APL"])
 
 
+stacked.apl.2 = stack(x = apl.2, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+max(stacked.apl.2$values)
+
+# Jitter ridgeline plot
+p4 = ggplot(stacked.apl.2, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  scale_x_continuous(limits = c(4,9)) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+  theme(legend.position = "none")
+
+```
+
+
+## Weighted Density C5
+
+
+```{r}
+wd.5 = as.data.frame(global.metrics[[5]]$global[,,"Weighted Density"])
+
+
+stacked.wd.5 = stack(x = wd.5, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+
+# Jitter ridgeline plot
+p7 = ggplot(stacked.wd.5, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  scale_x_continuous(limits = c(0.1,.3)) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot C5") +
+  common_theme + 
+  theme(legend.position = "none")
+p7
+
+```
+
+## APL C5
+
+```{r}
+apl.5 = as.data.frame(global.metrics[[5]]$global[,,"APL"])
+
+
+stacked.apl.5 = stack(x = apl.5, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+min(stacked.apl.5$values)
+
+# Jitter ridgeline plot
+p8 = ggplot(stacked.apl.5, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  scale_x_continuous(limits = c(3.5,8)) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+  theme(legend.position = "none")
+p8
+
+```
 
 
 

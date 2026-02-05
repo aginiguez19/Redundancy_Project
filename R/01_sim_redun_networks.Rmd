@@ -33,7 +33,7 @@ conditions = expand.grid(
   nv = c(10, 20),
   sd = c(.05, .25, .5),
   clone.loading = c(.9, .7))
-
+conditions
 ncond = nrow(conditions)
 results = vector("list", length = ncond)
 
@@ -184,7 +184,7 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
 # Correlation matrix of the indicators with the inclusion of the redundant indicator
   redun.corr = ind.corr(matrix = lat.corr,
                          loadings = loading,
-                         clone_loading = clone.loading,
+                         clone.loading = clone.loading,
                          redundancy = TRUE)
  
 # Correlation matrix of the indicators excluding the redundant indicator
@@ -292,7 +292,13 @@ weights = 1/abs(E(rpcor.graph.wo.clone)$weight))
    global.metrics.random = global.metrics.random
   )
  
+   saveRDS(object = results, file = "C:/Users/aginigue/Box/Redundancy_Project/R/simulation.results.rds")
+ 
 }
+
+View(readRDS("C:/Users/aginigue/Box/Redundancy_Project/R/simulation.results.rds"))
+
+
 
 
 ```

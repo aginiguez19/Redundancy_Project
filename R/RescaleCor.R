@@ -82,7 +82,7 @@ cor.gen = function(nvar = NULL,
   return(NULL)
 }
 
-x = cor.gen(nvar = 20, 
+x = cor.gen(nvar = 10, 
             bg.cor = 0.30, 
             mn.cor = 0.50, 
             prop.cor = 1, 
