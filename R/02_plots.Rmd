@@ -58,7 +58,7 @@ sd.sdeltas = tapply(X = sdeltas.long$Strength.Delta, INDEX = sdeltas.long$Node,F
 sdeltas.gg = data.frame(
   Node = names(mean.sdeltas),
   Mean = as.vector(mean.sdeltas),
-  SE = (as.vector(sd.sdeltas))/sqrt(1000))
+  SE = (as.vector(sd.sdeltas))/sqrt(500))
 
 # Add grouping column for fill and color
 
@@ -134,7 +134,7 @@ sd.eideltas = tapply(X = eideltas.long$Expected.Influence.Delta, INDEX = eidelta
 eideltas.gg = data.frame(
   Node = names(mean.eideltas),
   Mean = as.vector(mean.eideltas),
-  SE = (as.vector(sd.eideltas))/sqrt(1000))
+  SE = (as.vector(sd.eideltas))/sqrt(500))
 
 # Add grouping column for fill and color
 
@@ -211,7 +211,7 @@ sd.cdeltas = tapply(X = cdeltas.long$Closeness.Delta, INDEX = cdeltas.long$Node,
 cdeltas.gg = data.frame(
   Node = names(mean.cdeltas),
   Mean = as.vector(mean.cdeltas),
-  SE = (as.vector(sd.cdeltas))/sqrt(1000))
+  SE = (as.vector(sd.cdeltas))/sqrt(500))
 
 # Add grouping column for fill and color
 
@@ -287,7 +287,7 @@ sd.bdeltas = tapply(X = bdeltas.long$Betweenness.Delta, INDEX = bdeltas.long$Nod
 bdeltas.gg = data.frame(
   Node = names(mean.bdeltas),
   Mean = as.vector(mean.bdeltas),
-  SE = (as.vector(sd.bdeltas))/sqrt(1000))
+  SE = (as.vector(sd.bdeltas))/sqrt(500))
 
 # Add grouping column for fill and color
 
@@ -498,7 +498,11 @@ dev.off()
 # Final Simulation Plots
 
 ```{r}
-data = readRDS("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/Simulation Results/simulation.results.rds")
+
+
+
+
+data = readRDS("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation.results(2).rds")
 
 
 # Prepare data for plotting 
@@ -658,7 +662,7 @@ df.ei = map_dfr(local.results.c, function(x){
   
   tibble(
     nv = cond$nv,
-    sd = cond$sd,
+    mn.cor = cond$mn.cor,
     clone.loading = cond$clone.loading,
     
     `Peripheral Nodes` = df["Peripheral Nodes", "Expected Influence"],
@@ -671,6 +675,8 @@ df.ei = map_dfr(local.results.c, function(x){
                values_to ="expected.influence")
   
 })
+
+
 
 ```
 
@@ -689,7 +695,7 @@ df.metrics = map_dfr(local.results.c, function(x) {
   map_dfr(metrics, function(m) {
     tibble(
       nv = cond$nv,
-      sd = cond$sd,
+      mn.cor = cond$mn.cor,
       clone.loading = cond$clone.loading,
       metric = m,
       `Peripheral Nodes` = df["Peripheral Nodes", m],
@@ -719,7 +725,7 @@ df.metrics.sd = map_dfr(local.results.csd, function(x) {
   map_dfr(metrics, function(m) {
     tibble(
       nv = cond$nv,
-      sd = cond$sd,
+      mn.cor = cond$mn.cor,
       clone.loading = cond$clone.loading,
       metric = m,
       `Peripheral Nodes` = df["Peripheral Nodes", m],
@@ -747,7 +753,26 @@ df.metrics.sd = map_dfr(local.results.csd, function(x) {
 
 ```{r}
 
+my_theme <- function(){
+  theme_light() + 
+  theme(
+    legend.position = "right"
+    , legend.title = element_text(face = "bold", size = rel(1))
+    , legend.text = element_text(face = "italic", size = rel(1))
+    , axis.text = element_text(face = "bold", size = rel(1.1), color = "black")
+    , axis.title = element_text(face = "bold", size = rel(1.2))
+    , plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5)
+    , plot.subtitle = element_text(face = "italic", size = rel(1.2), hjust = .5)
+    , strip.text = element_text(face = "bold", size = rel(1.1), color = "white")
+    , strip.background = element_rect(fill = "black")
+    )
+}
 
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Expected Influence Plot (Redun.C1-6).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 df.ei.09 = df.metrics |> 
   filter(clone.loading == .9 & metric == "Expected Influence")
 
@@ -756,38 +781,46 @@ df.sd = df.metrics.sd |>
   rename(sd_value = value)
 
 df.plot = df.ei.09 |> 
-  left_join(df.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
-df.plot
+  left_join(df.sd, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
+
 
 ggplot(df.plot, aes(x = node.type,
                      y = value,
                      color = factor(nv),
                      group = interaction(node.type, nv))) +
-  geom_point(size = 3.5, aes(shape = node.type)) +
+  geom_point(size = 3, aes(shape = node.type)) +
   scale_shape_manual(
   values = c(
     "Peripheral Nodes" = 18,
     "Peripheral Nodes w/o Clone" = 15,
     "Target" = 16,            
     "Target w/o Clone" = 17)) +
-  facet_wrap(~ sd,
+    scale_color_manual(
+    values = c(
+      "10" = "darkturquoise",  
+      "20" = "firebrick2"   
+    )) +
+  facet_wrap(~ mn.cor,
              nrow = 3,
-             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
-                    ymax = value + sd_value / sqrt(1000)),
+             labeller = labeller(mn.cor = function(x) paste0("Correlation =  ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
+                    ymax = value + sd_value / sqrt(500)),
                 width = 0.1, color = "black", linewidth = 0.3) +
   labs(
     x = "Node Type",
-    y = "Expected Influence",
+    y =  "\u0394 Expected Influence",
     color = "Network Size"
   ) +
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "black") +
   coord_cartesian(ylim = c(-0.5, 0.5)) +
   guides(shape = "none") + 
-  theme_light() +
+  my_theme() +
   theme(
     strip.text = element_text(face = "bold.italic"),
     axis.text.x = element_text(angle = 20, hjust = 1))
-
+dev.off()
 ```
 
 ### Strength
@@ -801,42 +834,56 @@ df.s.sd = df.metrics.sd |>
   rename(sd_value = value)
 
 df.plot.s = df.s.09 |> 
-  left_join(df.s.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+  left_join(df.s.sd, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
 
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Strength Plot (Redun.C1-6).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 
 ggplot(df.plot.s, aes(x = node.type,
                      y = value,
                      color = factor(nv),
                      group = interaction(node.type, nv))) +
-  geom_point(size = 3.5, aes(shape = node.type)) +
+  geom_point(size = 3, aes(shape = node.type)) +
   scale_shape_manual(
   values = c(
     "Peripheral Nodes" = 18,
     "Peripheral Nodes w/o Clone" = 15,
     "Target" = 16,            
     "Target w/o Clone" = 17)) +
-  facet_wrap(~ sd,
+    scale_color_manual(
+    values = c(
+      "10" = "darkturquoise",  
+      "20" = "firebrick2"   
+    )) + facet_wrap(~ mn.cor,
              nrow = 3,
-             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
-                    ymax = value + sd_value / sqrt(1000)),
+             labeller = labeller(mn.cor = function(x) paste0("Correlation = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
+                    ymax = value + sd_value / sqrt(500)),
                 width = 0.1, color = "black", linewidth = 0.3) +
   labs(
     x = "Node Type",
-    y = "Strength",
+    y = "\u0394 Strength",
     color = "Network Size"
-  ) +
-  coord_cartesian(ylim = c(-1.5, 1.5)) +
+  )+
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "black") +
+  coord_cartesian(ylim = c(-1.25, 1.25)) +
   guides(shape = "none") + 
-  theme_light() +
+  my_theme() +
   theme(
     strip.text = element_text(face = "bold.italic"),
     axis.text.x = element_text(angle = 20, hjust = 1))
+dev.off()
 ```
 
 ### Closeness
 
 ```{r}
+
 df.c.09 = df.metrics |> 
   filter(clone.loading == .9 & metric == "Closeness")
 
@@ -845,8 +892,13 @@ df.c.sd = df.metrics.sd |>
   rename(sd_value = value)
 
 df.plot.c = df.c.09 |> 
-  left_join(df.c.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+  left_join(df.c.sd, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
 
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Closeness Plot (Redun.C1-6).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 
 ggplot(df.plot.c, aes(x = node.type,
                      y = value,
@@ -859,23 +911,32 @@ ggplot(df.plot.c, aes(x = node.type,
     "Peripheral Nodes w/o Clone" = 15,
     "Target" = 16,            
     "Target w/o Clone" = 17)) +
-  facet_wrap(~ sd,
+    scale_color_manual(
+    values = c(
+      "10" = "darkturquoise",  
+      "20" = "firebrick2"   
+    )) +
+  facet_wrap(~ mn.cor,
              nrow = 3,
-             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
-                    ymax = value + sd_value / sqrt(1000)),
+             labeller = labeller(mn.cor = function(x) paste0("Correlation = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
+                    ymax = value + sd_value / sqrt(500)),
                 width = 0.1, color = "black", linewidth = 0.3) +
   labs(
     x = "Node Type",
-    y = "Closeness",
+    y = "\u0394 Closeness",
     color = "Network Size"
-  ) +
+  )+
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "black") +
   coord_cartesian(ylim = c(-.15, .15)) +
   guides(shape = "none") + 
-  theme_light() +
+  my_theme() +
   theme(
     strip.text = element_text(face = "bold.italic"),
     axis.text.x = element_text(angle = 20, hjust = 1))
+dev.off()
 ```
 
 ### Betweenness
@@ -889,8 +950,13 @@ df.b.sd = df.metrics.sd |>
   rename(sd_value = value)
 
 df.plot.b = df.b.09 |> 
-  left_join(df.b.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+  left_join(df.b.sd, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
 
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Betweenness Plot (Redun.C1-6).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 
 ggplot(df.plot.b, aes(x = node.type,
                      y = value,
@@ -902,25 +968,34 @@ ggplot(df.plot.b, aes(x = node.type,
     "Peripheral Nodes" = 18,
     "Peripheral Nodes w/o Clone" = 15,
     "Target" = 16,            
-    "Target w/o Clone" = 17)) +
-  facet_wrap(~ sd,
+    "Target w/o Clone" = 17))+
+    scale_color_manual(
+    values = c(
+      "10" = "darkturquoise",  
+      "20" = "firebrick2"   
+    )) +
+  facet_wrap(~ mn.cor,
              nrow = 3,
-             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
-                    ymax = value + sd_value / sqrt(1000)),
+             labeller = labeller(mn.cor = function(x) paste0("Correlation = ", x))) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
+                    ymax = value + sd_value / sqrt(500)),
                 width = 0.1, color = "black", linewidth = 0.3) +
   labs(
     x = "Node Type",
-    y = "Betweenness",
+    y = "\u0394 Betweenness",
     color = "Network Size"
-  ) +
+  )+
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "black") +
   coord_cartesian(ylim = c(-10, 10)) +
   scale_y_continuous(breaks = c(-10, -5, 0, 5, 10)) +
   guides(shape = "none") + 
-  theme_light() +
+  my_theme() +
   theme(
     strip.text = element_text(face = "bold.italic"),
     axis.text.x = element_text(angle = 20, hjust = 1))
+dev.off()
 ```
 
 ## Clone Loading = .9 and .7
@@ -928,7 +1003,11 @@ geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
 ### EI
 
 ```{r}
-
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Expected Influence Plot (Redun.loadings).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 df.ei.loadings = df.metrics |> 
   filter(clone.loading %in% c(.9, .7) & metric == "Expected Influence")
 
@@ -936,7 +1015,7 @@ df.ei.loadings.sd = df.metrics.sd |>
   filter(clone.loading %in% c(.9, .7), metric == "Expected Influence") |>  rename(sd_value = value)
 
 df.plot.ei = df.ei.loadings |> 
-  left_join(df.ei.loadings.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+  left_join(df.ei.loadings.sd, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
 
 
 ggplot(df.plot.ei, aes(x = node.type,
@@ -949,25 +1028,36 @@ ggplot(df.plot.ei, aes(x = node.type,
     "Peripheral Nodes" = 18,
     "Peripheral Nodes w/o Clone" = 15,
     "Target" = 16,            
-    "Target w/o Clone" = 17)) +
-  facet_wrap(~ sd + clone.loading,
+    "Target w/o Clone" = 17))+
+    scale_color_manual(
+    values = c(
+      "10" = "darkturquoise",  
+      "20" = "firebrick2"   
+    )) +
+  facet_wrap(~ mn.cor + clone.loading,
              nrow = 3,
-             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
-                    ymax = value + sd_value / sqrt(1000)),
+             labeller = labeller(
+               mn.cor = function (x) paste0("Correlation = ", x),
+               clone.loading = function (x) paste0("Loading = ", x)
+             )) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
+                    ymax = value + sd_value / sqrt(500)),
                 width = 0.1, color = "black", linewidth = 0.3) +
   labs(
     x = "Node Type",
-    y = "Expected Influence",
+    y = "\u0394 Expected Influence",
     color = "Network Size"
-  ) +
+  )+
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "black") +
   coord_cartesian(ylim = c(-0.5, 0.5)) +
   guides(shape = "none") + 
-  theme_light() +
+  my_theme() +
   theme(
     strip.text = element_text(face = "bold.italic"),
     axis.text.x = element_text(angle = 20, hjust = 1))
-
+dev.off()
 
 
 ```
@@ -983,9 +1073,13 @@ df.s.loadings.sd = df.metrics.sd |>
   rename(sd_value = value)
 
 df.plot.s = df.s.loadings |> 
-  left_join(df.s.loadings.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+  left_join(df.s.loadings.sd, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
 
-
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Strength Plot (Redun.loadings).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 ggplot(df.plot.s, aes(x = node.type,
                      y = value,
                      color = factor(nv),
@@ -996,24 +1090,36 @@ ggplot(df.plot.s, aes(x = node.type,
     "Peripheral Nodes" = 18,
     "Peripheral Nodes w/o Clone" = 15,
     "Target" = 16,            
-    "Target w/o Clone" = 17)) +
-  facet_wrap(~ sd + clone.loading,
+    "Target w/o Clone" = 17))+
+    scale_color_manual(
+    values = c(
+      "10" = "darkturquoise",  
+      "20" = "firebrick2"   
+    ))+
+  facet_wrap(~ mn.cor + clone.loading,
              nrow = 3,
-             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
-                    ymax = value + sd_value / sqrt(1000)),
+             labeller = labeller(
+               mn.cor = function (x) paste0("Correlation = ", x),
+               clone.loading = function (x) paste0("Loading = ", x)
+             )) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
+                    ymax = value + sd_value / sqrt(500)),
                 width = 0.1, color = "black", linewidth = 0.3) +
   labs(
     x = "Node Type",
-    y = "Strength",
+    y = "\u0394 Strength",
     color = "Network Size"
-  ) +
+  )+
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "black") +
   coord_cartesian(ylim = c(-1.5, 1.5)) +
   guides(shape = "none") + 
-  theme_light() +
+  my_theme() +
   theme(
     strip.text = element_text(face = "bold.italic"),
     axis.text.x = element_text(angle = 20, hjust = 1))
+dev.off()
 ```
 
 ### Closeness
@@ -1027,9 +1133,13 @@ df.c.loadings.sd = df.metrics.sd |>
   rename(sd_value = value)
 
 df.plot.c = df.c.loadings |> 
-  left_join(df.c.loadings.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+  left_join(df.c.loadings.sd, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
 
-
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Closeness Plot (Redun.loadings).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 ggplot(df.plot.c, aes(x = node.type,
                      y = value,
                      color = factor(nv),
@@ -1040,24 +1150,36 @@ ggplot(df.plot.c, aes(x = node.type,
     "Peripheral Nodes" = 18,
     "Peripheral Nodes w/o Clone" = 15,
     "Target" = 16,            
-    "Target w/o Clone" = 17)) +
-  facet_wrap(~ sd + clone.loading,
+    "Target w/o Clone" = 17))+
+    scale_color_manual(
+    values = c(
+      "10" = "darkturquoise",  
+      "20" = "firebrick2"   
+    ))+
+  facet_wrap(~ mn.cor + clone.loading,
              nrow = 3,
-             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
-                    ymax = value + sd_value / sqrt(1000)),
+             labeller = labeller(
+               mn.cor = function (x) paste0("Correlation = ", x),
+               clone.loading = function (x) paste0("Loading = ", x)
+             )) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
+                    ymax = value + sd_value / sqrt(500)),
                 width = 0.1, color = "black", linewidth = 0.3) +
   labs(
     x = "Node Type",
-    y = "Closeness",
+    y = "\u0394 Closeness",
     color = "Network Size"
-  ) +
+  )+
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "black") +
   coord_cartesian(ylim = c(-.15, .15)) +
   guides(shape = "none") + 
-  theme_light() +
+  my_theme() +
   theme(
     strip.text = element_text(face = "bold.italic"),
     axis.text.x = element_text(angle = 20, hjust = 1))
+dev.off()
 ```
 
 ### Betweenness
@@ -1071,9 +1193,13 @@ df.b.loadings.sd = df.metrics.sd |>
   rename(sd_value = value)
 
 df.plot.b = df.b.loadings |> 
-  left_join(df.b.loadings.sd, by = c("nv", "sd", "clone.loading", "metric", "node.type"))
+  left_join(df.b.loadings.sd, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
 
-
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Betweenness Plot (Redun.loadings).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 ggplot(df.plot.b, aes(x = node.type,
                      y = value,
                      color = factor(nv),
@@ -1084,25 +1210,37 @@ ggplot(df.plot.b, aes(x = node.type,
     "Peripheral Nodes" = 18,
     "Peripheral Nodes w/o Clone" = 15,
     "Target" = 16,            
-    "Target w/o Clone" = 17)) +
-  facet_wrap(~ sd + clone.loading,
+    "Target w/o Clone" = 17))+
+    scale_color_manual(
+    values = c(
+      "10" = "darkturquoise",  
+      "20" = "firebrick2"   
+    )) +
+  facet_wrap(~ mn.cor + clone.loading,
              nrow = 3,
-             labeller = labeller(sd = function(x) paste0("SD = ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(1000),
-                    ymax = value + sd_value / sqrt(1000)),
+             labeller = labeller(
+               mn.cor = function (x) paste0("Correlation = ", x),
+               clone.loading = function (x) paste0("Loading = ", x)
+             )) +
+geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
+                    ymax = value + sd_value / sqrt(500)),
                 width = 0.1, color = "black", linewidth = 0.3) +
   labs(
     x = "Node Type",
-    y = "Betweenness",
+    y = "\u0394 Betweenness",
     color = "Network Size"
-  ) +
+  )+
+  geom_hline(yintercept = 0,
+             linetype = 2,
+             color = "black") +
   coord_cartesian(ylim = c(-17, 17)) +
   scale_y_continuous(breaks = c(-17, -10, -5, 0, 5, 10, 17)) +
   guides(shape = "none") + 
-  theme_light() +
+  my_theme() +
   theme(
     strip.text = element_text(face = "bold.italic"),
     axis.text.x = element_text(angle = 20, hjust = 1))
+dev.off()
 ```
 
 ## Random Network, Loading = .9
@@ -1160,7 +1298,11 @@ stacked.wd.1 = stack(x = wd.1, select = c("True Network", "Redundant Network", "
 
 
 
-
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C1).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 common_theme = theme(
   axis.title.y = element_blank(), 
   axis.ticks.y = element_blank(),  
@@ -1171,7 +1313,7 @@ common_theme = theme(
 )
 
 # Jitter ridgeline plot
-p1 = ggplot(stacked.wd.1, aes(
+  ggplot(stacked.wd.1, aes(
   x = values,
   y = ind,
   fill = ind)) +
@@ -1186,13 +1328,13 @@ p1 = ggplot(stacked.wd.1, aes(
   scale_y_discrete(labels = c("True Network",
                               "Redundant Network",
                               "Redudant Network w/o Clone")) +
-  scale_x_continuous(limits = c(0.1,.3)) +
   labs(x = NULL,
        y = "Network",
        title = "Weighted Density Ridgeline Plot") +
   common_theme + 
+    my_theme()+
   theme(legend.position = "none")
-
+dev.off()
 
 ```
 
@@ -1209,6 +1351,11 @@ stacked.apl.1 = stack(x = apl.1, select = c("True Network", "Redundant Network",
 
 min(stacked.apl.1$values)
 
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL Plot (C1).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 common_theme = theme(
   axis.title.y = element_blank(), 
   axis.ticks.y = element_blank(),  
@@ -1219,7 +1366,7 @@ common_theme = theme(
 )
 
 # Jitter ridgeline plot
-p2 = ggplot(stacked.apl.1, aes(
+  ggplot(stacked.apl.1, aes(
   x = values,
   y = ind,
   fill = ind)) +
@@ -1234,13 +1381,13 @@ p2 = ggplot(stacked.apl.1, aes(
   scale_y_discrete(labels = c("True Network",
                               "Redundant Network",
                               "Redudant Network w/o Clone")) +
-  scale_x_continuous(limits = c(0,12)) +
   labs(x = NULL,
        y = "Network",
        title = "APL Ridgeline Plot") +
   common_theme + 
+    my_theme() +
   theme(legend.position = "none")
-p2
+dev.off()
 ```
 
 
@@ -1254,8 +1401,13 @@ stacked.wd.2 = stack(x = wd.2, select = c("True Network", "Redundant Network", "
 
 
 
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C2).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 # Jitter ridgeline plot
-p3 = ggplot(stacked.wd.2, aes(
+ggplot(stacked.wd.2, aes(
   x = values,
   y = ind,
   fill = ind)) +
@@ -1270,12 +1422,13 @@ p3 = ggplot(stacked.wd.2, aes(
   scale_y_discrete(labels = c("True Network",
                               "Redundant Network",
                               "Redudant Network w/o Clone")) +
-  scale_x_continuous(limits = c(0.1,.25)) +
   labs(x = NULL,
        y = "Network",
        title = "Weighted Density Ridgeline Plot") +
   common_theme + 
+  my_theme() +
   theme(legend.position = "none")
+dev.off()
 
 ```
 
@@ -1284,14 +1437,18 @@ p3 = ggplot(stacked.wd.2, aes(
 ```{r}
 apl.2 = as.data.frame(global.metrics[[2]]$global[,,"APL"])
 
-
+View(global.metrics)
 stacked.apl.2 = stack(x = apl.2, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
 
 
-max(stacked.apl.2$values)
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C2).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 
 # Jitter ridgeline plot
-p4 = ggplot(stacked.apl.2, aes(
+ggplot(stacked.apl.2, aes(
   x = values,
   y = ind,
   fill = ind)) +
@@ -1306,29 +1463,197 @@ p4 = ggplot(stacked.apl.2, aes(
   scale_y_discrete(labels = c("True Network",
                               "Redundant Network",
                               "Redudant Network w/o Clone")) +
-  scale_x_continuous(limits = c(4,9)) +
   labs(x = NULL,
        y = "Network",
        title = "APL Ridgeline Plot") +
   common_theme + 
+  my_theme() +
   theme(legend.position = "none")
-
+dev.off()
 ```
+
+## Weighted Density C3
+
+```{r}
+wd.3 = as.data.frame(global.metrics[[3]]$global[,,"Weighted Density"])
+
+
+stacked.wd.3 = stack(x = wd.3, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C3).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+ggplot(stacked.wd.3, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme +
+  my_theme() +
+  theme(legend.position = "none")
+dev.off()
+```
+
+
+## APL C3
+
+```{r}
+apl.3 = as.data.frame(global.metrics[[3]]$global[,,"APL"])
+
+
+stacked.apl.3 = stack(x = apl.3, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C3).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+
+# Jitter ridgeline plot
+ggplot(stacked.apl.3, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+  my_theme() +
+  theme(legend.position = "none")
+dev.off()
+```
+
+## Weighted Density C4
+```{r}
+wd.4 = as.data.frame(global.metrics[[4]]$global[,,"Weighted Density"])
+
+
+stacked.wd.4 = stack(x = wd.4, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C4).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+ggplot(stacked.wd.4, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme +
+  my_theme() +
+  theme(legend.position = "none")
+dev.off()
+```
+
+## APL C4
+
+```{r}
+apl.4 = as.data.frame(global.metrics[[4]]$global[,,"APL"])
+
+
+stacked.apl.4 = stack(x = apl.4, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C4).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+
+# Jitter ridgeline plot
+ggplot(stacked.apl.4, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+  my_theme() +
+  theme(legend.position = "none")
+dev.off()
+```
+
+
+
+
 
 
 ## Weighted Density C5
 
 
 ```{r}
-wd.5 = as.data.frame(global.metrics[[5]]$global[,,"Weighted Density"])
 
+wd.5 = as.data.frame(global.metrics[[5]]$global[,,"Weighted Density"])
 
 stacked.wd.5 = stack(x = wd.5, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
 
 
-
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C5).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 # Jitter ridgeline plot
-p7 = ggplot(stacked.wd.5, aes(
+   ggplot(stacked.wd.5, aes(
   x = values,
   y = ind,
   fill = ind)) +
@@ -1343,13 +1668,13 @@ p7 = ggplot(stacked.wd.5, aes(
   scale_y_discrete(labels = c("True Network",
                               "Redundant Network",
                               "Redudant Network w/o Clone")) +
-  scale_x_continuous(limits = c(0.1,.3)) +
   labs(x = NULL,
        y = "Network",
-       title = "Weighted Density Ridgeline Plot C5") +
+       title = "Weighted Density Ridgeline Plot") +
   common_theme + 
+     my_theme()+
   theme(legend.position = "none")
-p7
+dev.off()
 
 ```
 
@@ -1362,10 +1687,13 @@ apl.5 = as.data.frame(global.metrics[[5]]$global[,,"APL"])
 stacked.apl.5 = stack(x = apl.5, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
 
 
-min(stacked.apl.5$values)
-
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C5).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
 # Jitter ridgeline plot
-p8 = ggplot(stacked.apl.5, aes(
+  ggplot(stacked.apl.5, aes(
   x = values,
   y = ind,
   fill = ind)) +
@@ -1380,16 +1708,591 @@ p8 = ggplot(stacked.apl.5, aes(
   scale_y_discrete(labels = c("True Network",
                               "Redundant Network",
                               "Redudant Network w/o Clone")) +
-  scale_x_continuous(limits = c(3.5,8)) +
   labs(x = NULL,
        y = "Network",
        title = "APL Ridgeline Plot") +
   common_theme + 
+    my_theme()+
   theme(legend.position = "none")
-p8
+dev.off()
+
+```
+
+## Weighted Density C6
+```{r}
+wd.6 = as.data.frame(global.metrics[[6]]$global[,,"Weighted Density"])
+
+stacked.wd.6 = stack(x = wd.6, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C6).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+   ggplot(stacked.wd.6, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme + 
+     my_theme()+
+  theme(legend.position = "none")
+dev.off()
+
+```
+
+## APL C6
+
+```{r}
+apl.6 = as.data.frame(global.metrics[[6]]$global[,,"APL"])
+
+
+stacked.apl.6 = stack(x = apl.6, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C6).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+  ggplot(stacked.apl.6, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+    my_theme()+
+  theme(legend.position = "none")
+dev.off()
+```
+
+## Weighted Density C7
+
+```{r}
+wd.7 = as.data.frame(global.metrics[[7]]$global[,,"Weighted Density"])
+
+stacked.wd.7 = stack(x = wd.7, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C7).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+   ggplot(stacked.wd.7, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme + 
+     my_theme()+
+  theme(legend.position = "none")
+dev.off()
+
+```
+
+## APL C7
+
+```{r}
+apl.7 = as.data.frame(global.metrics[[7]]$global[,,"APL"])
+
+
+stacked.apl.7= stack(x = apl.7, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C7).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+  ggplot(stacked.apl.7, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+    my_theme()+
+  theme(legend.position = "none")
+dev.off()
+```
+
+## Weighted Density C8
+
+```{r}
+wd.8 = as.data.frame(global.metrics[[8]]$global[,,"Weighted Density"])
+
+stacked.wd.8 = stack(x = wd.8, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C8).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+   ggplot(stacked.wd.8, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme + 
+     my_theme()+
+  theme(legend.position = "none")
+dev.off()
+
+```
+
+## APL C8
+
+```{r}
+apl.8 = as.data.frame(global.metrics[[8]]$global[,,"APL"])
+
+
+stacked.apl.8= stack(x = apl.8, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C8).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+  ggplot(stacked.apl.8, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+    my_theme()+
+  theme(legend.position = "none")
+dev.off()
+```
+## Weighted Density C9
+```{r}
+wd.9 = as.data.frame(global.metrics[[9]]$global[,,"Weighted Density"])
+
+stacked.wd.9 = stack(x = wd.9, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C9).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+   ggplot(stacked.wd.9, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot ") +
+  common_theme + 
+     my_theme()+
+  theme(legend.position = "none")
+dev.off()
+
+```
+
+## APL C9
+
+```{r}
+apl.9 = as.data.frame(global.metrics[[9]]$global[,,"APL"])
+
+
+stacked.apl.9= stack(x = apl.9, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C9).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+  ggplot(stacked.apl.9, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+    my_theme()+
+  theme(legend.position = "none")
+dev.off()
+```
+
+## Weighted Density C10
+```{r}
+wd.10 = as.data.frame(global.metrics[[10]]$global[,,"Weighted Density"])
+
+stacked.wd.10 = stack(x = wd.10, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C10).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+   ggplot(stacked.wd.10, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme + 
+     my_theme()+
+  theme(legend.position = "none")
+dev.off()
+
+```
+
+## APL C10
+```{r}
+
+apl.10 = as.data.frame(global.metrics[[10]]$global[,,"APL"])
+
+
+stacked.apl.10= stack(x = apl.10, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C10).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+  ggplot(stacked.apl.7, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+    my_theme()+
+  theme(legend.position = "none")
+dev.off()
+```
+
+## Weighted Density C11
+```{r}
+wd.11 = as.data.frame(global.metrics[[11]]$global[,,"Weighted Density"])
+
+stacked.wd.11 = stack(x = wd.11, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C11).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+   ggplot(stacked.wd.11, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme + 
+     my_theme()+
+  theme(legend.position = "none")
+dev.off()
 
 ```
 
 
+## APL C11
 
+```{r}
+apl.11= as.data.frame(global.metrics[[11]]$global[,,"APL"])
+
+
+stacked.apl.11= stack(x = apl.11, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C11).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+  ggplot(stacked.apl.11, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+    my_theme()+
+  theme(legend.position = "none")
+dev.off()
+```
+## Weighted Density C12
+```{r}
+wd.12 = as.data.frame(global.metrics[[12]]$global[,,"Weighted Density"])
+
+stacked.wd.12 = stack(x = wd.10, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C12).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+   ggplot(stacked.wd.12, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "Weighted Density Ridgeline Plot") +
+  common_theme + 
+     my_theme()+
+  theme(legend.position = "none")
+dev.off()
+
+```
+
+## APL C12
+
+```{r}
+apl.12 = as.data.frame(global.metrics[[12]]$global[,,"APL"])
+
+
+stacked.apl.12= stack(x = apl.12, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
+
+
+jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/APL (C12).jpg",
+     width= 12,
+     height= 6,
+     res=800,
+     units="in")
+# Jitter ridgeline plot
+  ggplot(stacked.apl.12, aes(
+  x = values,
+  y = ind,
+  fill = ind)) +
+  geom_density_ridges(aes(point_color = ind,
+        point_fill = ind,
+        point_shape = ind),
+        alpha = .2,
+        point_alpha = 1,
+        jittered_points = TRUE) +
+  scale_point_color_hue(l = 40) +
+  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
+  scale_y_discrete(labels = c("True Network",
+                              "Redundant Network",
+                              "Redudant Network w/o Clone")) +
+  labs(x = NULL,
+       y = "Network",
+       title = "APL Ridgeline Plot") +
+  common_theme + 
+    my_theme()+
+  theme(legend.position = "none")
+dev.off()
+```
+
+```{r}
+for (i in 1:30){
+  m = matrix(0, 11, 11)
+m[lower.tri(m)] = data[[9]][["redun.pcor"]][[i]]
+m[upper.tri(m)] = t(m)[upper.tri(m)]
+library(qgraph)
+qgraph(m, edge.labels = TRUE)
+}
+m = matrix(0, 11, 11)
+m[lower.tri(m)] = data[[9]][["redun.pcor"]][[i]]
+m[upper.tri(m)] = t(m)[upper.tri(m)]
+library(qgraph)
+qgraph(m, edge.labels = TRUE)
+```
+
+
+
+
+
+
+
+
+```{r}
+x = cor.gen(nvar = 10, 
+            bg.cor = 0.30, 
+            mn.cor = 0.50, 
+            prop.cor = 1, 
+            iter.lim = 50000, 
+            sd = 0.15, 
+            tol.eig = 1e-8, 
+            mean.tol = 0.04, 
+            clip = 0.99)
+
+y = ind.corr(x, loadings = .9)
+qgraph(cor2pcor(y), edge.labels = TRUE)
+dev.off()
+```
 

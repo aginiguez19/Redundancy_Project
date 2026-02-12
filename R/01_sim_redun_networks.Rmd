@@ -26,20 +26,27 @@ source("00_project_functions.R")
 
 ```{r}
 # Initial values & conditions
-nsim = 1000
+nsim = 500
 loading = .9
 
 conditions = expand.grid(
   nv = c(10, 20),
-  sd = c(.05, .25, .5),
+  mn.cor = c(.1, .3, .5),
   clone.loading = c(.9, .7))
-conditions
+
 ncond = nrow(conditions)
 results = vector("list", length = ncond)
 
+true.pcor.vals  = vector("list", nsim)
+redun.pcor.vals = vector("list", nsim)
+
+
+
+
+
 for (c in 1:ncond){
   nv = conditions$nv[c]
-  sd = conditions$sd[c]
+  mn.cor = conditions$mn.cor[c]
   clone.loading = conditions$clone.loading[c]
 
 # Arrays containing centrality metric data
@@ -66,7 +73,7 @@ global.metrics.random = array(NA, dim = c(nsim, 3, 2),
 flag = 0
 for (i in 1:nsim){if(flag == 0){
 # Correlation matrix of the latent variables
-  lat.corr = cor.gen(nvar = nv, sd = sd)
+  lat.corr = cor.gen(nvar = nv, mn.cor = mn.cor)
   
 # Correlation matrix of the indicators with the inclusion of the additional random indicator
   random.corr = ind.corr(matrix = lat.corr,
@@ -145,7 +152,7 @@ for (i in 1:nsim){if(flag == 0){
                     normalized = TRUE,
                     weights = 1/abs(E(the.g)$weight))
 # In node.c, replace closeness values from node.wo.c with all nodes in the random network except the "additional" node
-  node.c[1:8] = node.wo.c
+  node.c[1:(2*nv)] = node.wo.c
 # Save node.c for every observation of "Closeness w/o Random"
   local.metrics.random[i,,"Closeness w/o Random"] = node.c
   
@@ -159,7 +166,7 @@ for (i in 1:nsim){if(flag == 0){
   node.b = betweenness(the.g,
                         normalized = FALSE,
                         weights = 1/abs(E(the.g)$weight)) 
-  node.b[1:8] = node.wo.b
+  node.b[1:(2*nv)] = node.wo.b
   local.metrics.random[i,,"Betweenness w/o Random"] = node.b
   
 
@@ -179,7 +186,7 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
   
 }
 # Correlation matrix of the latent variables
-  lat.corr = cor.gen(nvar = nv, sd = sd)
+  lat.corr = cor.gen(nvar = nv, mn.cor = mn.cor)
   
 # Correlation matrix of the indicators with the inclusion of the redundant indicator
   redun.corr = ind.corr(matrix = lat.corr,
@@ -193,9 +200,11 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
 # Partial correlation matrix of the indicators excluding the redundant indicator
   true.pcor = cor2pcor(true.corr)
   colnames(true.pcor) = c(paste0("P", 1:(nv-1)), "Target")
+  true.pcor.vals[[i]] <- true.pcor[lower.tri(true.pcor)]
 # Partial correlation matrix of the indicators including the redundant indicator
   redun.pcor = cor2pcor(redun.corr)
   colnames(redun.pcor) = c(paste0("P", 1:(nv-1), ".r"), "Target.r", "Clone")
+  redun.pcor.vals[[i]] <- redun.pcor[lower.tri(redun.pcor)]
 
 
 # Create a block for easier centrality computation 
@@ -255,7 +264,7 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
   node.c = closeness(the.g,
                       normalized = TRUE,
                       weights = 1/abs(E(the.g)$weight))
-  node.c[1:8] = node.wo.c
+  node.c[1:(2*nv)] = node.wo.c
   local.metrics[i,,"Closeness w/o Clone"] = node.c
 
 # Full redundant network(B)
@@ -269,7 +278,8 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
   node.b = betweenness(the.g,
                        normalized = FALSE,
                        weights = 1/abs(E(the.g)$weight))
-  node.b[1:8] = node.wo.b
+
+  node.b[1:(2*nv)] = node.wo.b
   local.metrics[i,,"Betweenness w/o Clone"] = node.b
   
 ## Global metrics  
@@ -289,15 +299,17 @@ weights = 1/abs(E(rpcor.graph.wo.clone)$weight))
    local.metrics = local.metrics,
    global.metrics = global.metrics,
    local.metrics.random = local.metrics.random,
-   global.metrics.random = global.metrics.random
+   global.metrics.random = global.metrics.random,
+   true.pcor = true.pcor.vals,
+   redun.pcor = redun.pcor.vals
   )
  
-   saveRDS(object = results, file = "C:/Users/aginigue/Box/Redundancy_Project/R/simulation.results.rds")
+   saveRDS(object = results, file = "/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation.results(2).rds")
  
 }
 
-View(readRDS("C:/Users/aginigue/Box/Redundancy_Project/R/simulation.results.rds"))
 
+View(readRDS("simulation.results(2).rds"))
 
 
 
