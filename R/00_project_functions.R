@@ -37,6 +37,31 @@ cor2pcor <- function(matrix){
 }
 
 
+# cor2pcor = function(matrix){
+#   prec.mat = solve(matrix)
+#   pcor.mat = matrix(data = NA, nrow = nrow(prec.mat), ncol = ncol(prec.mat))
+#   
+#   for (i in 1:nrow(pcor.mat)){
+#     for (j in 1:ncol(pcor.mat)){
+#       if (i == j) {
+#         pcor.mat[i,j] = prec.mat[i,j]/(sqrt(prec.mat[i,i]*prec.mat[j,j]))
+#       } else {
+#       pcor.mat[i,j] = -(prec.mat[i,j]/(sqrt(prec.mat[i,i]*prec.mat[j,j])))
+#       }
+#     }
+#   }
+#   return(pcor.mat)
+# }
+
+
+# prec.mat = solve(matrix)
+# sd = sqrt(diag(prec.mat))
+# pcor.mat = -1 *prec.mat/(outer(sd,sd))
+# pcor.mat
+# 
+# cor2pcor(matrix)
+
+
 # True and Redundant Correlation Matrix Function  ----------------------------------------------------------
 
 # If creating a redundant network, specify the # of nodes of the true network,
@@ -53,9 +78,11 @@ ind.corr <- function(matrix, loadings, clone.loading = .9, redundancy = TRUE){
   dimensions <- dim(matrix)
   if (redundancy == FALSE) {
     nv = nv + 1
-    matrix = cor.gen(nvar = nv, sd = sd)
+    matrix = cor.gen(nvar = nv, mn.cor = mn.cor)
     dimensions = dim(matrix)
     lambda_matrix = diag(x = loadings, nrow = dimensions[1], ncol = dimensions[2])
+    last_element = nrow(lambda_matrix) * ncol(lambda_matrix)
+    lambda_matrix[last_element] = clone.loading
     
     # Lambda * Psi * t(Lambda)
     random_mat <- lambda_matrix %*% matrix %*% t(lambda_matrix)
@@ -63,6 +90,7 @@ ind.corr <- function(matrix, loadings, clone.loading = .9, redundancy = TRUE){
     # Theta
     dimensions_theta <- dim(random_mat)
     theta <- diag((x = 1 - (loadings)^2), nrow = dimensions_theta[1], ncol = dimensions_theta[2])
+    theta[dimensions_theta[1],dimensions_theta[2]] <- (1-(clone.loading)^2)
     random_mat <- random_mat + theta
     return(random_mat)
   }
@@ -72,19 +100,19 @@ ind.corr <- function(matrix, loadings, clone.loading = .9, redundancy = TRUE){
 
   # Lambda * Psi * t(Lambda)
   redun_mat <- lambda_matrix %*% matrix %*% t(lambda_matrix)
-lambda_matrix
+
   # Theta
   dimensions_theta <- dim(redun_mat)
   theta <- diag((x = 1 - (loadings)^2), nrow = dimensions_theta[1], ncol = dimensions_theta[2])
   theta[dimensions_theta[1],dimensions_theta[2]] <- (1-(clone.loading)^2)
   redun_mat <- redun_mat + theta
+  cat("\n Mean =", mean(redun_mat[lower.tri(redun_mat)]), "\n")
   return(redun_mat)
 }
 
 
 
-  
-  
+
 # Weighted Density Function --------------------------------------------------------
 # This function takes your igraph object and whether you want weighted density
 # using "expected influence" aka strength or psych strength
@@ -148,11 +176,30 @@ weighted.density = function(igrph.object, abs = TRUE){
 #                          theme = "colorblind")
 
 
-
-
-
-
-
-
-
-
+# Collapsing a Redundant Node -------------------------------------------------
+#  x
+# mat = ind.corr(matrix = x, loadings = .9)
+# mat
+# a <- matrix(c(1, 0, 0, 0,
+#               0, 1, 0, 0,
+#               0, 0, 1, 1),3,4, byrow = T)
+#  c <- t(a)
+#  collapse_mat <- a%*%mat%*%c
+# 
+# library(qgraph)
+# network = wi2net(solve(collapse_mat))
+# dim(network)
+# absolute.network = as.matrix(abs(network))
+# dimensions = dim(absolute.network)
+# node.strength = colSums(absolute.network, na.rm = TRUE)
+# node.strength
+# strength_each <- rep(node.strength, each = dimensions[2])
+# strength_times <- rep(node.strength, times = dimensions[2])
+# 
+# minimum_matrix <- matrix(
+#   ifelse(
+#     strength_each < strength_times,
+#     strength_each, strength_times
+#   ), 
+#   nrow = dimensions[2], ncol = dimensions[2]
+# )
