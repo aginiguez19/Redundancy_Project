@@ -4,7 +4,7 @@ cor.gen = function(nvar = NULL,
                    prop.cor = 1,
                    iter.lim = 100,
                    sd = 0.1,
-                   tol.eig = 1e-8,
+                   tol.eig = 1e-1,
                    mean.tol = 0.005,
                    clip = 0.99){
   

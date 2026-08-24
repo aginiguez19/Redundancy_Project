@@ -35,11 +35,58 @@ for (j in 1:nrow(conds)){
 library(igraph)
 library(qgraph) 
 library(corpcor)
-n = 10
+n = 5
 sparse.deltas.c = matrix(NA, nrow = 1000, ncol = n)
 for (i in 1:1000){
 # Start with generating the correlation matrix 
 lat.mat = cor.gen(nvar = n, mn.cor = .6, sd = .05)
+
+# Convert latent correlation matrix into a precision matrix 
+prec.mat = solve(lat.mat)
+
+# Induce sparsity to the precision matrix 
+sparse.prec.mat = function(prec.mat, prop = .3, max.iter = 100){
+  n = nrow(prec.mat) # Get number of nodes
+  idx.lower = which(lower.tri(prec.mat)) # Get indexes of lower triangle
+  n.zero = floor(prop * length(idx.lower)) # Number of 0s 
+  
+  for (i in 1:max.iter){
+    prec.new = prec.mat  # Number of repititions until a PSD precision matrix is found
+    idx.zero = sample(idx.lower, n.zero) # Sample from indexes that should be 0
+    prec.new[idx.zero] = 0 # Change the sampled indexes to 0 
+    
+    prec.new[upper.tri(prec.new)] = t(prec.new)[upper.tri(prec.new)] # Make upper triangle the same
+    
+    vals = eigen(prec.new, symmetric = TRUE, only.values = TRUE)$values # Check eigens
+    
+    if (all(vals >= 1e-8)){
+      return(prec.new)
+    }
+  }
+}
+
+
+# Induce sparsity to the precision matrix  
+prec.mat = sparse.prec.mat(prec.mat)
+
+
+# Take inverse to go back to latent covariance matrix 
+latent.sparse = solve(prec.mat)
+
+
+# Standardize 
+cov2cor = function(matrix){
+  inv.sd = diag(1/sqrt(diag(item.sparse)))
+  matrix = inv.sd %*% matrix %*% inv.sd
+  return(matrix)
+}
+# Standardized matrix of sparse item cov matrix
+item.sparse = cov2cor(item.sparse)
+
+
+
+
+
 
 # Use SEM formula to get model-implied correlation matrix
 dimensions = dim(lat.mat)
@@ -53,9 +100,6 @@ dimensions.theta = dim(item.mat)
 theta = diag((x = 1 - (.9)^2), nrow = dimensions.theta[1], ncol = dimensions.theta[2])
 item.mat <- item.mat + theta
 
-
-# Convert to precision matrix 
-prec.mat = solve(item.mat)
 
 # Function to make a sparse precision matrix
 sparse.prec.mat = function(prec.mat, prop = .3, max.iter = 100){

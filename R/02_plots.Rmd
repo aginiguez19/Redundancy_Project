@@ -14,10 +14,10 @@ knitr::opts_chunk$set(echo = TRUE)
 # Laptop
 # data = readRDS("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation.results(2).rds")
 
-data = readRDS("/Users/abraham/Desktop/simulation_results.rds")
+# data = readRDS("/Users/abraham/Desktop/simulation_results.rds")
 
 # Desktop
-# data = readRDS("C:/Users/aginigue/Box/Redundancy_Project/R/simulation.results(2).rds")
+data = readRDS("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1.rds")
 
 # data = readRDS("C:/Users/aginigue/Desktop/simulation_results.rds")
 
@@ -44,26 +44,52 @@ invisible(sapply(package.list, function(package){
 
 
 # Get strength of target
+View(data)
+
+# Descriptives of networks 
+summarize_pcor <- function(data) {
+  avg_offdiag <- function(mat) mean(mat[lower.tri(mat)])
+  
+  do.call(rbind, lapply(data, function(cond) {
+    cbind(
+      cond$condition,
+      mean.true.pcor  = mean(sapply(cond$true.pcor,  avg_offdiag)),
+      mean.redun.pcor = mean(sapply(cond$redun.pcor, avg_offdiag))
+    )
+  }))
+}
+
+results <- summarize_pcor(data)
+results %>% 
+  filter(nv == 10) %>% 
+  summarize(mean = mean(mean.redun.pcor))
+
+
+
+
+
+
 
 data.target = lapply(X = data,
                      FUN = function(x){
                        list(condition = x[[1]],
-                            metrics = x[[2]][,c("Target", "Target.r"),
-                                             c("Strength",
-                                               "Strength w/o Clone")])})
+                            G_TNS = x[[2]][ , "Target", "Expected Influence"],
+                            G_RNS = x[[2]][ ,"Target.r", "Expected Influence w/o Clone"],
+                            G_ANS = x[[4]][,"Target.r", "Expected Influence w/o Random"])})
 # Tidy data 
 tibble.target = lapply(X = data.target,
                        FUN = function(x){
-                         condition = x$condition
-                         metrics = x$metrics
-                         
+                         # condition = x$condition
+                         # metrics = x$metrics
                          tibble(
-                           target_pre = metrics[, "Target", "Strength"],
-                           target_post = metrics[, "Target.r", "Strength"],
-                           target_without_clone = metrics[, "Target.r",
-                                                              "Strength w/o Clone"]
-                         ) |> 
-                           bind_cols(condition[rep(1, 100), ])})
+                           G_TNS = x$G_TNS,
+                           G_RNS = x$G_RNS,
+                           G_ANS = x$G_ANS) |>
+                           bind_cols(x$condition[rep(1, 500), ])})
+                           # target_pre = metrics[, "Target", "Betweenness"],
+                           # target_post = metrics[, "Target.r", "Betweenness"],
+                           # target_without_random = metrics[, "Target.r",
+                           #                                    "Betweenness w/o Random"]
 
 tibble.target = tibble.target |> 
   bind_rows()
@@ -71,8 +97,8 @@ tibble.target = tibble.target |>
 # Pivot longer
 
 tibble.target = tibble.target |>
-  group_by(mn.cor, clone.loading, nv) |> 
-  mutate(delta = target_post - target_pre) |> 
+  # group_by(mn.cor, clone.loading, nv) |> 
+  # mutate(delta = target_post - target_pre) |> 
   pivot_longer(
     cols = !c(mn.cor, nv, clone.loading),
     names_to = "target_type",
@@ -88,31 +114,38 @@ tibble.target = tibble.target |>
     sd = sd(values),
     .groups = "drop") |> 
   mutate(target_type = factor(target_type,
-                              levels = c("target_pre", "target_post",
-                                         "target_without_clone", "delta"),
-                                         labels = c("target pre clone",
-                                                    "target post clone",
-                                                    "target without clone",
-                                                    "delta"),
+                              levels = c("G_TNS", "G_RNS",
+                                         "G_ANS"), # , "delta",
                               ordered = TRUE),
+     # labels = c("target pre random",
+     #            "target post random",
+     #            "target without random",
+     #            "delta")
+
          mn.cor = factor(mn.cor),
          clone.loading = factor(clone.loading,
                                 levels = c(.7, .9),
-                                labels = c("Medium Redundancy", "High Redundancy")))
+                                labels = c("Medium Redundancy", "High Redundancy")),
+         nv = factor(nv,
+                     levels = c(10, 20),
+                     labels = c("10 Node", "20 Node")))
 
 
 
-plot.data = tibble.target |> 
-  filter(target_type == "target pre clone"| target_type == "target without clone")
+plot.data = tibble.target 
+# |> 
+#   filter(target_type == "target pre random"| target_type == "target without random")
 
 
 
 # Plot 
 
-jpeg(filename = "Target_Strength.jpeg",
+# shared_ylim_strength <- c(0.25, 2.5)
+#shared_ylim <- c(0.1, 1.0)
+jpeg(filename = "Target_Expected Influnce(test).jpeg",
      width = 12,
-     height = 6,
-     res = 800,
+     height = 8,
+     res = 500,
      units = "in")
 ggplot(data = plot.data, mapping = aes(x = mn.cor, 
                                            y = mean,
@@ -121,26 +154,33 @@ ggplot(data = plot.data, mapping = aes(x = mn.cor,
                                            group = target_type)) +
   geom_line() +
   geom_point() +
+  geom_line(linewidth = 1.1) +   # increase from default 0.5
+  geom_point(size = 2.5) +
   facet_grid(nv ~ clone.loading) +
-  labs(x = "Correlations",
-       y = "Strength",
-       title = "Change in Strength of Target Node")+
-  geom_errorbar(aes(ymin = mean - sd/sqrt(100),
-                   ymax = mean + sd/sqrt(100)),
-                linewidth = .3,
+  labs(x = "Average Latent Variable Correlations (rho)",
+       y = "Expected Influence")+
+  geom_errorbar(aes(ymin = mean - sd/sqrt(500),
+                   ymax = mean + sd/sqrt(500)),
+                linewidth = .5,
                 color = "black",
-                width = .05) +
-  scale_color_manual(name = "Target Type",
-                     labels = c("target pre clone",
-                                "target without clone"),
+                width = .09) +
+  scale_color_manual(name = "Network",
+                     labels = expression(G[TNS], G[RNS], G[ANS]),
                      values = c("#00BFC4",
-                                "#F8766D"
-                                ))+
-  scale_shape_manual(name = "Target Type",
-                     labels = c("target pre clone",
-                                "target without clone"),
-                     values = c(15, 17)) +
-  guides(color = guide_legend(title = "Target Type")) +
+                                "#F8766D",
+                                "#7CAE00")) +
+  scale_shape_manual(name = "Network",
+                     labels = expression(G[TNS], G[RNS], G[ANS]),
+                     values = c(15, 17, 16)) +
+  # guides(color = guide_legend(title = "Target Type")) +
+  scale_y_continuous(limits = c(0.10, 1.0),
+                   breaks = seq(0.1, 1.0, by = 0.2)) +
+  # scale_y_continuous(limits = c(-0.5, 7),
+  #                  breaks = seq(0, 6, by = 2)) +
+# scale_y_continuous(limits = c(0.02, 0.18),
+#                    breaks = seq(0.02, 0.18, by = 0.04)) +
+  # scale_y_continuous(limits = c(0.25, 2.5),
+  #                  breaks = seq(0.25, 2.5, by = 0.5)) +
   my_theme() +
   theme(plot.title = element_text(hjust = .5))
 dev.off()
@@ -266,9 +306,7 @@ df
 
 # Get average global metrics for each condition (Not saved atm)
 
-lapply(data, function(cond){
-  df.global = avg.global(cond$global.metrics)
-})
+1
 
 # Function to compute sd of global metrics
 
@@ -282,6 +320,9 @@ sd.global = function(array) {
 lapply(data, function(cond){
   df.global.sd = sd.global(cond$global.metrics)
 })
+
+
+
 
 
 # Avg deltas for each condition
@@ -503,13 +544,13 @@ my_theme = function(){
   theme_light() + 
   theme(
     legend.position = "right"
-    , legend.title = element_text(face = "bold", size = rel(1))
-    , legend.text = element_text(face = "italic", size = rel(1))
-    , axis.text = element_text(face = "bold", size = rel(1.1), color = "black")
-    , axis.title = element_text(face = "bold", size = rel(1.2))
-    , plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5)
-    , plot.subtitle = element_text(face = "italic", size = rel(1.2), hjust = .5)
-    , strip.text = element_text(face = "bold", size = rel(1.1), color = "white")
+    , legend.title = element_text(face = "bold", size = rel(1.8))
+    , legend.text = element_text(face = "italic", size = rel(1.8))
+    , axis.text = element_text(face = "bold", size = rel(1.8), color = "black")
+    , axis.title = element_text(face = "bold", size = rel(1.8))
+    , plot.title = element_text(face = "bold", size = rel(1.8), hjust = .5)
+    , plot.subtitle = element_text(face = "italic", size = rel(1.8), hjust = .5)
+    , strip.text = element_text(face = "bold", size = rel(1.8), color = "white")
     , strip.background = element_rect(fill = "black")
     )
 }

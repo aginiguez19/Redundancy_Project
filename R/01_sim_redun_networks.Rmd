@@ -28,15 +28,15 @@ source("RescaleCor.R")
 
 ```{r}
 # Initial values & conditions
-nsim = 100
+nsim = 5
 loading = .9
 
 conditions = expand.grid(
   nv = c(10, 20),
-  mn.cor = c(.1, .3, .5, .7, .9),
-  clone.loading = c(.9, .7))
+  mn.cor = c(0.1, 0.3, 0.5, 0.7, 0.9),
+  clone.loading = c(0.7,.9))
 
-
+# nv = 5
 
 ncond = nrow(conditions)
 results = vector("list", length = ncond)
@@ -76,12 +76,17 @@ global.metrics.random = array(NA, dim = c(nsim, 3, 2),
 
 
 flag = 0
-for (i in 1:nsim){if(flag == 0){
-# Correlation matrix of the latent variables
-  lat.corr = cor.gen(nvar = nv, mn.cor = mn.cor)
+
+for (i in 1:nsim){
+  
+lat.corr.full = cor.gen(nvar = nv + 1, mn.cor = mn.cor)
+lat.corr = lat.corr.full[1:nv, 1:nv]
+  
+  if(flag == 0){
+
   
 # Correlation matrix of the indicators with the inclusion of the additional random indicator
-  random.corr = ind.corr(matrix = lat.corr,
+  random.corr = ind.corr(matrix = lat.corr.full,
                          loadings = loading,
                          clone.loading = clone.loading,
                          redundancy = FALSE)
@@ -111,8 +116,8 @@ for (i in 1:nsim){if(flag == 0){
   randompcor.graph = graph_from_adjacency_matrix(random.pcor,
                                                  mode = "undirected",
                                                  weighted = TRUE)
-  random.cnx.wa =  E(randompcor.graph)[grepl("Random",
-                                             as_ids(E(randompcor.graph)))]
+  # random.cnx.wa =  E(randompcor.graph)[grepl("Random",
+  #                                            as_ids(E(randompcor.graph)))]
   randompcor.graph.wo.random =  delete_vertices(randompcor.graph,
                                                 "Random")
 
@@ -151,7 +156,7 @@ for (i in 1:nsim){if(flag == 0){
 # Compute closeness of nodes without "additional" node
   node.wo.c = closeness(g.wo.random,
                          normalized = TRUE,
-                         weights = 1/abs(E(g.wo.random)$weight))
+                         weights = 1/round(abs(E(g.wo.random)$weight), 2))
 # Compute the closeness on the.g. This lets us obtain each node's closeness value across true and random network
   node.c = closeness(the.g,
                     normalized = TRUE,
@@ -163,13 +168,13 @@ for (i in 1:nsim){if(flag == 0){
   
 # Full random network(B)
   local.metrics.random[i,,"Betweenness"] = betweenness(the.g, weights = 1/(abs(E(the.g)$weight)),
-                                                        normalized = FALSE)
+                                                        normalized = TRUE)
 # "Additional" node exclusion in random network(B)
   node.wo.b = betweenness(g.wo.random,
-                           normalized = FALSE,
+                           normalized = TRUE,
                            weights = 1/abs(E(g.wo.random)$weight))
   node.b = betweenness(the.g,
-                        normalized = FALSE,
+                        normalized = TRUE,
                         weights = 1/abs(E(the.g)$weight)) 
   node.b[1:(2*nv)] = node.wo.b
   local.metrics.random[i,,"Betweenness w/o Random"] = node.b
@@ -190,8 +195,7 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
                                                                                                abs = TRUE)
   
 }
-# Correlation matrix of the latent variables
-  lat.corr = cor.gen(nvar = nv, mn.cor = mn.cor)
+
   
 # Correlation matrix of the indicators with the inclusion of the redundant indicator
   redun.corr = ind.corr(matrix = lat.corr,
@@ -265,7 +269,7 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
   g.wo.clone = delete_vertices(the.g,
                                 "Clone")
   node.wo.c = closeness(g.wo.clone, normalized = TRUE,
-                         weights = 1/abs(E(g.wo.clone)$weight))
+                         weights = 1/round(abs(E(g.wo.clone)$weight), 2))
   node.c = closeness(the.g,
                       normalized = TRUE,
                       weights = 1/abs(E(the.g)$weight))
@@ -275,13 +279,13 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
 # Full redundant network(B)
   local.metrics[i,,"Betweenness"] = betweenness(the.g,
                                                  weights =1/(abs(E(the.g)$weight)),
-                                                 normalized = FALSE)
+                                                 normalized = TRUE)
 # Clone exclusion in redundant network(B)
   node.wo.b = betweenness(g.wo.clone,
-                           normalized = FALSE,
+                           normalized = TRUE,
                            weights = 1/abs(E(g.wo.clone)$weight))
   node.b = betweenness(the.g,
-                       normalized = FALSE,
+                       normalized = TRUE,
                        weights = 1/abs(E(the.g)$weight))
 
   node.b[1:(2*nv)] = node.wo.b
@@ -313,7 +317,7 @@ weights = 1/abs(E(rpcor.graph.wo.clone)$weight))
    #         file = "C:/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation.results(2).rds")
  
     saveRDS(object = results, 
-           file = "/Users/abraham/Desktop/simulation_results.rds")
+           file = "/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1_test.rds")
  
 }
 
@@ -322,6 +326,110 @@ weights = 1/abs(E(rpcor.graph.wo.clone)$weight))
 
 
 
+
+# Remake of Figure 1
+pp = averageLayout(qgraph(redun.pcor,
+            edge.labels = TRUE,
+            DoNotPlot = TRUE))
+
+node.colors = c("white", "white", "white", "gold")
+colnames(redun.pcor) = c("P1", "P2", "P3", "Target", "Redun")
+colnames(true.pcor) = c("P1", "P2", "P3", "Target")
+
+node.colors.2 = c("white", "white", "white", "gold","lightblue")
+
+jpeg(filename = "Redundancy_Fig1.jpeg",
+     width = 12,
+     height = 8,
+     res = 500,
+     units = "in")
+
+
+par(mfrow = c(1, 2))
+qgraph(true.pcor,
+       layout = pp[1:4,],
+       edge.labels = TRUE,
+       color = node.colors,
+       labels = colnames(true.pcor),
+       label.cex = 1.15,
+       vsize = 12,
+       edge.label.cex = 1.8,
+       maximum = 0.6,
+       esize = 25,
+       theme = "colorblind")
+text(-.28, 1.20, "Original Network",
+     cex = 1.5, adj = 1)
+
+qgraph(redun.pcor,
+       layout = pp,
+       edge.labels = TRUE,
+       color = node.colors.2,
+       labels = colnames(redun.pcor),
+       label.cex = 1.15,
+       vsize = 12,
+       edge.label.cex = 1.8,
+       maximum = 0.6,
+       edge.label.position = 0.42,
+       esize = 25,
+       theme = "colorblind")
+text(-0.1, 1.20, "Redundant Network",
+     cex = 1.5, adj = 1)
+dev.off()
+
+
+
+
+# Remake of Figure 3
+pp = averageLayout(qgraph(random.pcor,
+            edge.labels = TRUE,
+            DoNotPlot = TRUE))
+
+node.colors = c("white", "white", "white", "gold")
+colnames(random.pcor) = c("P1", "P2", "P3", "Target", "Random")
+
+
+node.colors.2 = c("white", "white", "white", "gold","lightblue")
+
+
+jpeg(filename = "Random_Fig3.jpeg",
+     width = 12,
+     height = 8,
+     res = 500,
+     units = "in")
+
+
+par(mfrow = c(1, 2))
+qgraph(true.pcor,
+       layout = pp[1:4,],
+       edge.labels = TRUE,
+       color = node.colors,
+       labels = colnames(true.pcor),
+       label.cex = 1.15,
+       vsize = 12,
+       edge.label.cex = 1.8,
+       esize = 25,
+       maximum = 0.48,
+       cut = 0,
+       theme = "colorblind")
+text(-.45, 1.20, "Original Network",
+     cex = 1.35, adj = 1)
+
+qgraph(random.pcor,
+       layout = pp,
+       edge.labels = TRUE,
+       color = node.colors.2,
+       labels = colnames(random.pcor),
+       label.cex = 1.15,
+       vsize = 12,
+       edge.label.cex = 1.8,
+       edge.label.position = 0.25,
+       esize = 25,
+       maximum = 0.48,
+       cut = 0,
+       theme = "colorblind")
+text(-0.5, 1.20, "Random Network",
+     cex = 1.35, adj = 1)
+dev.off()
 ```
 
 

@@ -77,8 +77,6 @@ ind.corr <- function(matrix, loadings, clone.loading = .9, redundancy = TRUE){
   # Lambda
   dimensions <- dim(matrix)
   if (redundancy == FALSE) {
-    nv = nv + 1
-    matrix = cor.gen(nvar = nv, mn.cor = mn.cor)
     dimensions = dim(matrix)
     lambda_matrix = diag(x = loadings, nrow = dimensions[1], ncol = dimensions[2])
     last_element = nrow(lambda_matrix) * ncol(lambda_matrix)
