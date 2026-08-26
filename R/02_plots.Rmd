@@ -19,6 +19,10 @@ knitr::opts_chunk$set(echo = TRUE)
 # Desktop
 data = readRDS("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1.rds")
 
+data.R2 = readRDS("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1_R2.rds")
+
+View(data.R2)
+
 # data = readRDS("C:/Users/aginigue/Desktop/simulation_results.rds")
 
 # Packages 
@@ -47,21 +51,23 @@ invisible(sapply(package.list, function(package){
 View(data)
 
 # Descriptives of networks 
-summarize_pcor <- function(data) {
+summarize_pcor <- function(data.R2) {
   avg_offdiag <- function(mat) mean(mat[lower.tri(mat)])
   
-  do.call(rbind, lapply(data, function(cond) {
+  do.call(rbind, lapply(data.R2, function(cond) {
     cbind(
       cond$condition,
       mean.true.pcor  = mean(sapply(cond$true.pcor,  avg_offdiag)),
-      mean.redun.pcor = mean(sapply(cond$redun.pcor, avg_offdiag))
+      mean.redun.pcor = mean(sapply(cond$redun.pcor, avg_offdiag)),
+      mean.random.pcor = mean(sapply(cond$random.pcor, avg_offdiag))
     )
   }))
 }
 
-results <- summarize_pcor(data)
+results <- summarize_pcor(data.R2)
+
 results %>% 
-  filter(nv == 10) %>% 
+  filter(nv == 20) %>% 
   summarize(mean = mean(mean.redun.pcor))
 
 
@@ -70,12 +76,12 @@ results %>%
 
 
 
-data.target = lapply(X = data,
+data.target = lapply(X = data.R2,
                      FUN = function(x){
                        list(condition = x[[1]],
-                            G_TNS = x[[2]][ , "Target", "Expected Influence"],
-                            G_RNS = x[[2]][ ,"Target.r", "Expected Influence w/o Clone"],
-                            G_ANS = x[[4]][,"Target.r", "Expected Influence w/o Random"])})
+                            G_TNS = x[[2]][ , "Target", "Betweenness"],
+                            G_RNS = x[[2]][ ,"Target.r", "Betweenness w/o Clone"],
+                            G_ANS = x[[4]][,"Target.r", "Betweenness w/o Random"])})
 # Tidy data 
 tibble.target = lapply(X = data.target,
                        FUN = function(x){
@@ -142,7 +148,7 @@ plot.data = tibble.target
 
 # shared_ylim_strength <- c(0.25, 2.5)
 #shared_ylim <- c(0.1, 1.0)
-jpeg(filename = "Target_Expected Influnce(test).jpeg",
+jpeg(filename = "Target_Betweenness(R2).jpeg",
      width = 12,
      height = 8,
      res = 500,
@@ -158,7 +164,7 @@ ggplot(data = plot.data, mapping = aes(x = mn.cor,
   geom_point(size = 2.5) +
   facet_grid(nv ~ clone.loading) +
   labs(x = "Average Latent Variable Correlations (rho)",
-       y = "Expected Influence")+
+       y = "Betweenness")+
   geom_errorbar(aes(ymin = mean - sd/sqrt(500),
                    ymax = mean + sd/sqrt(500)),
                 linewidth = .5,
@@ -173,8 +179,8 @@ ggplot(data = plot.data, mapping = aes(x = mn.cor,
                      labels = expression(G[TNS], G[RNS], G[ANS]),
                      values = c(15, 17, 16)) +
   # guides(color = guide_legend(title = "Target Type")) +
-  scale_y_continuous(limits = c(0.10, 1.0),
-                   breaks = seq(0.1, 1.0, by = 0.2)) +
+  # scale_y_continuous(limits = c(0.10, 1.0),
+  #                  breaks = seq(0.1, 1.0, by = 0.2)) +
   # scale_y_continuous(limits = c(-0.5, 7),
   #                  breaks = seq(0, 6, by = 2)) +
 # scale_y_continuous(limits = c(0.02, 0.18),

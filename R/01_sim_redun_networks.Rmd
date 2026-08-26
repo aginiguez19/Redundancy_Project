@@ -28,7 +28,7 @@ source("RescaleCor.R")
 
 ```{r}
 # Initial values & conditions
-nsim = 5
+nsim = 500
 loading = .9
 
 conditions = expand.grid(
@@ -41,9 +41,6 @@ conditions = expand.grid(
 ncond = nrow(conditions)
 results = vector("list", length = ncond)
 
-true.pcor.vals  = vector("list", nsim)
-redun.pcor.vals = vector("list", nsim)
-
 
 
 
@@ -52,6 +49,10 @@ for (c in 1:ncond){
   nv = conditions$nv[c]
   mn.cor = conditions$mn.cor[c]
   clone.loading = conditions$clone.loading[c]
+  
+  true.pcor.vals  = vector("list", nsim)
+  redun.pcor.vals = vector("list", nsim)
+  random.pcor.vals = vector("list", nsim)
 
 # Arrays containing centrality metric data
 local.metrics = array(NA, dim = c(nsim, (2*nv + 1), 8),
@@ -100,6 +101,7 @@ lat.corr = lat.corr.full[1:nv, 1:nv]
 # Partial correlation matrix of the indicators with the inclusion of the random indicator
   random.pcor = cor2pcor(random.corr)
   colnames(random.pcor) = c(paste0("P", 1:(nv-1), ".r"), "Target.r", "Random")
+  random.pcor.vals[[i]] <- random.pcor[lower.tri(random.pcor)]
 
 
 # Create a block for easier centrality computation 
@@ -310,14 +312,15 @@ weights = 1/abs(E(rpcor.graph.wo.clone)$weight))
    local.metrics.random = local.metrics.random,
    global.metrics.random = global.metrics.random,
    true.pcor = true.pcor.vals,
-   redun.pcor = redun.pcor.vals
+   redun.pcor = redun.pcor.vals,
+   random.pcor = random.pcor.vals
   )
  
    # saveRDS(object = results, 
    #         file = "C:/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation.results(2).rds")
  
     saveRDS(object = results, 
-           file = "/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1_test.rds")
+           file = "/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1_R2.rds")
  
 }
 
@@ -328,108 +331,108 @@ weights = 1/abs(E(rpcor.graph.wo.clone)$weight))
 
 
 # Remake of Figure 1
-pp = averageLayout(qgraph(redun.pcor,
-            edge.labels = TRUE,
-            DoNotPlot = TRUE))
-
-node.colors = c("white", "white", "white", "gold")
-colnames(redun.pcor) = c("P1", "P2", "P3", "Target", "Redun")
-colnames(true.pcor) = c("P1", "P2", "P3", "Target")
-
-node.colors.2 = c("white", "white", "white", "gold","lightblue")
-
-jpeg(filename = "Redundancy_Fig1.jpeg",
-     width = 12,
-     height = 8,
-     res = 500,
-     units = "in")
-
-
-par(mfrow = c(1, 2))
-qgraph(true.pcor,
-       layout = pp[1:4,],
-       edge.labels = TRUE,
-       color = node.colors,
-       labels = colnames(true.pcor),
-       label.cex = 1.15,
-       vsize = 12,
-       edge.label.cex = 1.8,
-       maximum = 0.6,
-       esize = 25,
-       theme = "colorblind")
-text(-.28, 1.20, "Original Network",
-     cex = 1.5, adj = 1)
-
-qgraph(redun.pcor,
-       layout = pp,
-       edge.labels = TRUE,
-       color = node.colors.2,
-       labels = colnames(redun.pcor),
-       label.cex = 1.15,
-       vsize = 12,
-       edge.label.cex = 1.8,
-       maximum = 0.6,
-       edge.label.position = 0.42,
-       esize = 25,
-       theme = "colorblind")
-text(-0.1, 1.20, "Redundant Network",
-     cex = 1.5, adj = 1)
-dev.off()
-
-
-
-
-# Remake of Figure 3
-pp = averageLayout(qgraph(random.pcor,
-            edge.labels = TRUE,
-            DoNotPlot = TRUE))
-
-node.colors = c("white", "white", "white", "gold")
-colnames(random.pcor) = c("P1", "P2", "P3", "Target", "Random")
-
-
-node.colors.2 = c("white", "white", "white", "gold","lightblue")
-
-
-jpeg(filename = "Random_Fig3.jpeg",
-     width = 12,
-     height = 8,
-     res = 500,
-     units = "in")
-
-
-par(mfrow = c(1, 2))
-qgraph(true.pcor,
-       layout = pp[1:4,],
-       edge.labels = TRUE,
-       color = node.colors,
-       labels = colnames(true.pcor),
-       label.cex = 1.15,
-       vsize = 12,
-       edge.label.cex = 1.8,
-       esize = 25,
-       maximum = 0.48,
-       cut = 0,
-       theme = "colorblind")
-text(-.45, 1.20, "Original Network",
-     cex = 1.35, adj = 1)
-
-qgraph(random.pcor,
-       layout = pp,
-       edge.labels = TRUE,
-       color = node.colors.2,
-       labels = colnames(random.pcor),
-       label.cex = 1.15,
-       vsize = 12,
-       edge.label.cex = 1.8,
-       edge.label.position = 0.25,
-       esize = 25,
-       maximum = 0.48,
-       cut = 0,
-       theme = "colorblind")
-text(-0.5, 1.20, "Random Network",
-     cex = 1.35, adj = 1)
-dev.off()
+# pp = averageLayout(qgraph(redun.pcor,
+#             edge.labels = TRUE,
+#             DoNotPlot = TRUE))
+# 
+# node.colors = c("white", "white", "white", "gold")
+# colnames(redun.pcor) = c("P1", "P2", "P3", "Target", "Redun")
+# colnames(true.pcor) = c("P1", "P2", "P3", "Target")
+# 
+# node.colors.2 = c("white", "white", "white", "gold","lightblue")
+# 
+# jpeg(filename = "Redundancy_Fig1.jpeg",
+#      width = 12,
+#      height = 8,
+#      res = 500,
+#      units = "in")
+# 
+# 
+# par(mfrow = c(1, 2))
+# qgraph(true.pcor,
+#        layout = pp[1:4,],
+#        edge.labels = TRUE,
+#        color = node.colors,
+#        labels = colnames(true.pcor),
+#        label.cex = 1.15,
+#        vsize = 12,
+#        edge.label.cex = 1.8,
+#        maximum = 0.6,
+#        esize = 25,
+#        theme = "colorblind")
+# text(-.28, 1.20, "Original Network",
+#      cex = 1.5, adj = 1)
+# 
+# qgraph(redun.pcor,
+#        layout = pp,
+#        edge.labels = TRUE,
+#        color = node.colors.2,
+#        labels = colnames(redun.pcor),
+#        label.cex = 1.15,
+#        vsize = 12,
+#        edge.label.cex = 1.8,
+#        maximum = 0.6,
+#        edge.label.position = 0.42,
+#        esize = 25,
+#        theme = "colorblind")
+# text(-0.1, 1.20, "Redundant Network",
+#      cex = 1.5, adj = 1)
+# dev.off()
+# 
+# 
+# 
+# 
+# # Remake of Figure 3
+# pp = averageLayout(qgraph(random.pcor,
+#             edge.labels = TRUE,
+#             DoNotPlot = TRUE))
+# 
+# node.colors = c("white", "white", "white", "gold")
+# colnames(random.pcor) = c("P1", "P2", "P3", "Target", "Random")
+# 
+# 
+# node.colors.2 = c("white", "white", "white", "gold","lightblue")
+# 
+# 
+# jpeg(filename = "Random_Fig3.jpeg",
+#      width = 12,
+#      height = 8,
+#      res = 500,
+#      units = "in")
+# 
+# 
+# par(mfrow = c(1, 2))
+# qgraph(true.pcor,
+#        layout = pp[1:4,],
+#        edge.labels = TRUE,
+#        color = node.colors,
+#        labels = colnames(true.pcor),
+#        label.cex = 1.15,
+#        vsize = 12,
+#        edge.label.cex = 1.8,
+#        esize = 25,
+#        maximum = 0.48,
+#        cut = 0,
+#        theme = "colorblind")
+# text(-.45, 1.20, "Original Network",
+#      cex = 1.35, adj = 1)
+# 
+# qgraph(random.pcor,
+#        layout = pp,
+#        edge.labels = TRUE,
+#        color = node.colors.2,
+#        labels = colnames(random.pcor),
+#        label.cex = 1.15,
+#        vsize = 12,
+#        edge.label.cex = 1.8,
+#        edge.label.position = 0.25,
+#        esize = 25,
+#        maximum = 0.48,
+#        cut = 0,
+#        theme = "colorblind")
+# text(-0.5, 1.20, "Random Network",
+#      cex = 1.35, adj = 1)
+# dev.off()
 ```
 
 
