@@ -1,7 +1,6 @@
 # The Effect of a Redundant Node on Centrality Estimates
 
-## Methods Summary
+## Simulation
 
-## Project Structure
+## Session Info
 
-## References
