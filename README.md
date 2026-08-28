@@ -3,7 +3,7 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 ## Simulation
 
-- [`R`](R/)
+- [`Simulation`](Simulation/)
 
 
 ## Supplementary Material
