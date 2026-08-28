@@ -3,6 +3,9 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 ## Simulation
 
+- [`R`](R/)
+
+
 ## Supplementary Material
 
 ## Session Info
