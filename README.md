@@ -8,7 +8,7 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 
 ## Supplementary Material
-- [`Supplementary Material`](<Supplementary Material/>)
+- [`Supplementary_Material`](Supplementary_Material/)
 
 ## Session Info
 
