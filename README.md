@@ -5,7 +5,7 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 - [`Simulation`](Simulation/) contains the simulation script, helper functions, and results saved as `.rds`. Additionally, `RescaleCor.R` holds the `cor.gen` function used to generate the latent correlation matrices, **$\Psi$**.
 
-- [`Figures`](Figures/) turns the output produced by `01_sim_redun_networks.Rmd` into all the plots from our results section. All conceptual figures are also available here. 
+- [`Figures`](Figures/) holds code to turn the output produced by `01_sim_redun_networks.Rmd` into all the plots from our results section. All conceptual figures are also available here. 
 
 
 ## Supplementary Material
