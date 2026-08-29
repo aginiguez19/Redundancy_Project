@@ -1,11 +1,11 @@
 # The Effect of a Redundant Node on Centrality Estimates
-This repository contains the `.R` files to reproduce our simulation results and figures.
+This repository contains the `.R` files to reproduce our simulation results and figures for Iniguez, Rhemtulla, Park (2026).
 
 ## Simulation
 
 - [`Simulation`](Simulation/) contains the simulation script, helper functions, and results saved as `.rds`. Additionally, `RescaleCor.R` holds the `cor.gen` function used to generate the latent correlation matrices, **$\Psi$**.
 
-- [`Figures`](Figures/) holds code to turn the output produced by `01_sim_redun_networks.Rmd` into all the plots from our results section. All conceptual figures are also available here. 
+- [`Figures`](Figures/) holds code to turn the output produced by `01_sim_redun_networks.Rmd` into all the plots from our results section. All conceptual figures are also available here. Data are simulated, and no empirical data are used.  
 
 
 ## Supplementary Material
