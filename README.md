@@ -3,8 +3,7 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 ## Simulation
 
-- [`Simulation`](Simulation/)
-- [`Figures`](Figures/)
+- [`Simulation`](Simulation/) contains the simulation script, helper functions, and results saved as `.rds`. Additionally, `RescaleCor.R` contains the function built with the exact parameters used to generate the latent correlation matrix, **$\Psi$**  
 
 
 ## Supplementary Material
