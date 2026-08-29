@@ -1,9 +1,9 @@
 # The Effect of a Redundant Node on Centrality Estimates
-This repository contains the `.R` files to reproduce our simulation results and the supplemental material. 
+This repository contains the `.R` files to reproduce our simulation results and figures.
 
 ## Simulation
 
-- [`Simulation`](Simulation/) contains the simulation script, helper functions, and results saved as `.rds`. Additionally, `RescaleCor.R` contains the function built with the exact parameters used to generate the latent correlation matrix, **$\Psi$**  
+- [`Simulation`](Simulation/) contains the simulation script, helper functions, and results saved as `.rds`. Additionally, `RescaleCor.R` contains the `cor.gen` function used to generate the latent correlation matrices, **$\Psi$**.  
 
 
 ## Supplementary Material
