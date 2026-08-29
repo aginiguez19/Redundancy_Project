@@ -1,5 +1,5 @@
 # The Effect of a Redundant Node on Centrality Estimates
-This repository contains the `.R` files to reproduce our simulation results and figures for Iniguez, Rhemtulla, Park (2026).
+This repository contains the `.R` files to reproduce our simulation results and figures for Iñiguez, Rhemtulla, Park (2026).
 
 ## Simulation
 
