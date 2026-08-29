@@ -4,9 +4,11 @@ This repository contains the `.R` files to reproduce our simulation results and 
 ## Simulation
 
 - [`Simulation`](Simulation/)
+- [`Figures`](Figures/)
 
 
 ## Supplementary Material
+- [`Supplementary Material`](Supplementary Material)
 
 ## Session Info
 
