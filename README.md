@@ -32,7 +32,7 @@ attached base packages:
 [7] base     
 
 other attached packages:
-[1] igraph_2.3.3  qgraph_1.10.1
+[1] xfun_0.60     igraph_2.3.3  qgraph_1.10.1
 
 loaded via a namespace (and not attached):
  [1] generics_0.1.4      gtools_3.9.5        jpeg_0.1-11        
