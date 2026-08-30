@@ -28,6 +28,7 @@ Platform: aarch64-apple-darwin23
 Running under: macOS Tahoe 26.6.2, RStudio 2026.8.2.200
 
 attached base packages:
+
 [1] stats     graphics  grDevices utils     datasets  methods  
 [7] base     
 
@@ -36,6 +37,7 @@ other attached packages:
 [1] xfun_0.60     igraph_2.3.3  qgraph_1.10.1
 
 loaded via a namespace (and not attached):
+ 
  [1] generics_0.1.4      gtools_3.9.5        jpeg_0.1-11        
  [4] stringi_1.8.9       lattice_0.23-1      digest_0.6.39      
  [7] magrittr_2.0.5      evaluate_1.0.5      grid_4.6.1         
