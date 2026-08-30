@@ -11,13 +11,21 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 ## Script Execution
 
+1. Run
+
+2. Run 
+
+Each iteration initially samples from a normal distribution with an average correlation (i.e., 0.1, 0.3, 0.5, 0.7, 0.9) and a standard deviation of 0.1, a latent correlation matrix that is used to generate the random network. Then, the same latent correlation matrix is subsetted to generate the redundant network. 
+
 ## Runtime
+
+The simulation took approximately 2.54 minutes on a 2026 MacBook Air M5 16 GB
 
 ## Session Info
 
 R version 4.6.1 (2026-06-24)
 Platform: aarch64-apple-darwin23
-Running under: macOS Tahoe 26.6.2
+Running under: macOS Tahoe 26.6.2, RStudio 2026.8.2.200
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods  
