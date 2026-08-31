@@ -69,4 +69,4 @@ loaded via a namespace (and not attached):
 This project is licensed under the terms of the [`MIT`](LICENSE.md) license.
 
 ## Contact
-Please contact Abraham Iñiguez [aginiguez@ucdavis.edu] should any questions arise. 
+Please contact Abraham Iñiguez (aginiguez@ucdavis.edu) should any questions arise. 
