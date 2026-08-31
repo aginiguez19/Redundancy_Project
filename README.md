@@ -11,7 +11,7 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 ## Script Execution
 
-1. Run
+1. Run code in the [`01_sim_redun_networks.Rmd`](01_sim_redun_networks.Rmd) file to reproduce our simulation. All conditions (i.e., $p$, $\rho$, redundancy level, and additional node type) are fully crossed for 500 iterations. Please edit `saveRDS()` to save the results to your local directory before running the code.  
 
 2. Run 
 
