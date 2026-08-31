@@ -66,7 +66,7 @@ loaded via a namespace (and not attached):
 
 ## License
 
-This project is licensed under the terms of the [MIT][`LICENSE`](LICENSE.md) license.
+This project is licensed under the terms of the [`MIT`](LICENSE.md) license.
 
 ## Contact
 
