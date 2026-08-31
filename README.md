@@ -19,7 +19,7 @@ Each iteration initially samples from a normal distribution with an average corr
 
 ## Runtime
 
-The simulation takes approximately 2.54 minutes on a 2026 MacBook Air M5 16 GB
+The simulation takes approximately 2.54 minutes on a 2026 MacBook Air M5 16 GB.
 
 ## Session Info
 
@@ -69,4 +69,4 @@ loaded via a namespace (and not attached):
 This project is licensed under the terms of the [`MIT`](LICENSE.md) license.
 
 ## Contact
-
+Please contact Abraham Iñiguez [aginiguez@ucdavis.edu] should any questions arise. 
