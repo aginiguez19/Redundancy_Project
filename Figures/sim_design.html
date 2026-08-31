@@ -1,0 +1,65 @@
+<svg width="90%" viewBox="0 0 680 580" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Simulation design flowchart</title>
+  <desc>Five-step simulation flowchart: simulate correlation matrix, produce model-implied sigma then subset sigma, invert and standardize both sigma matrices, compute network properties, repeated 500 times</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <style>
+    text { font-family: sans-serif; }
+    .th  { font-size: 14px; font-weight: 500; }
+    .a-box   { fill: #022851; stroke: #FFBF00; }
+    .a-title { fill: #FFBF00; }
+    .b-box   { fill: #022851; stroke: #FFBF00; }
+    .b-title { fill: #FFBF00; }
+    .d-box   { fill: #022851; stroke: #FFBF00; }
+    .d-title { fill: #FFBF00; }
+    .e-box   { fill: #022851; stroke: #FFBF00; }
+    .e-title { fill: #FFBF00; }
+    .arr  { stroke: #333333; stroke-width: 1.5; fill: none; }
+    .loop { stroke: #333333; stroke-width: 1; fill: none; stroke-dasharray: 5 4; }
+    .loop-label { font-size: 12px; fill: #333333; font-family: sans-serif; }
+  </style>
+
+  <!-- Step A -->
+  <rect class="a-box" x="60" y="30" width="560" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th a-title" x="340" y="55" text-anchor="middle" dominant-baseline="central">A — Simulate correlation matrix</text>
+
+  <!-- Arrow A → B only -->
+  <line class="arr" x1="208" y1="80" x2="208" y2="120" marker-end="url(#arrow)"/>
+
+  <!-- Step B (left) -->
+  <rect class="b-box" x="60" y="120" width="295" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th b-title" x="208" y="145" text-anchor="middle" dominant-baseline="central">B — Produce model-implied Σ</text>
+
+  <!-- Arrow B → C -->
+  <line class="arr" x1="355" y1="145" x2="390" y2="145" marker-end="url(#arrow)"/>
+
+  <!-- Step C (right) -->
+  <rect class="b-box" x="390" y="120" width="230" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th b-title" x="505" y="145" text-anchor="middle" dominant-baseline="central">C — Subset Σ to p×p</text>
+
+  <!-- B and C merge down to D -->
+  <line x1="208" y1="170" x2="208" y2="220" stroke="#333333" stroke-width="1.5" fill="none"/>
+  <line x1="505" y1="170" x2="505" y2="220" stroke="#333333" stroke-width="1.5" fill="none"/>
+  <line x1="208" y1="220" x2="505" y2="220" stroke="#333333" stroke-width="1.5" fill="none"/>
+  <line class="arr" x1="340" y1="220" x2="340" y2="240" marker-end="url(#arrow)"/>
+
+  <!-- Step D -->
+  <rect class="d-box" x="60" y="240" width="560" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th d-title" x="340" y="265" text-anchor="middle" dominant-baseline="central">D — Invert and standardize both Σ matrices</text>
+
+  <!-- Arrow D → E -->
+  <line class="arr" x1="340" y1="290" x2="340" y2="340" marker-end="url(#arrow)"/>
+
+  <!-- Step E -->
+  <rect class="e-box" x="160" y="340" width="360" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th e-title" x="340" y="365" text-anchor="middle" dominant-baseline="central">E — Compute network properties</text>
+
+  <!-- Loop arrow: E back to A -->
+  <path class="loop" d="M160 365 L44 365 L44 55 L60 55" marker-end="url(#arrow)"/>
+  <text class="loop-label" x="36" y="215" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 36 215)">500×</text>
+
+</svg>
