@@ -63,6 +63,8 @@ loaded via a namespace (and not attached):
 
 ## Citation
 
+Iñiguez, A. G., Rhemtulla, M., & Park, J.J. (2026). The Effect of a Redundant Node on Centrality Estimates.
+
 ## License
 
 This project is licensed under the terms of the [`MIT`](LICENSE.md) license.
