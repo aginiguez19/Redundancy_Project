@@ -11,7 +11,7 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 ## Script Execution
 
-1. Run code in the [`01_sim_redun_networks.Rmd`](01_sim_redun_networks.Rmd) file to reproduce our simulation. All conditions (i.e., $p$, $\rho$, redundancy level, and additional node type) are fully crossed for 500 iterations. Please edit `saveRDS()` to match your local directory before running the code.  
+1. Run code in the [`01_sim_redun_networks.Rmd`](Simulation/01_sim_redun_networks.Rmd) file to reproduce our simulation. All conditions (i.e., $p$, $\rho$, redundancy level, and additional node type) are fully crossed for 500 iterations. Please edit `saveRDS()` to match your local directory before running the code.  
 
 2. Load output from your local directory and run [`02_plots.Rmd`](02_plots.Rmd) to produce centrality measure figures. Example network figures from the manuscript can be reproduced using [Conceptual_Figures.R](Conceptual_Figures.R)  
 
