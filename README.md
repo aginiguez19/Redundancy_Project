@@ -3,17 +3,17 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 ## Contents
 
-- [`Simulation`](Simulation/) contains the simulation script, helper functions, and results saved as `.rds`. Additionally, `RescaleCor.R` holds the `cor.gen` function used to generate the latent correlation matrices, **$\Psi$**.
+- [Simulation](Simulation/) contains the simulation script, helper functions, and results saved as `.rds`. Additionally, `RescaleCor.R` holds the `cor.gen` function used to generate the latent correlation matrices, **$\Psi$**.
 
-- [`Figures`](Figures/) holds code to turn the output produced by `01_sim_redun_networks.Rmd` into all the plots from our results section. All conceptual figures are also available here. Data are simulated, and no empirical data are used.
+- [Figures](Figures/) holds code to turn the output produced by `01_sim_redun_networks.Rmd` into all the plots from our results section. All conceptual figures are also available here. Data are simulated, and no empirical data are used.
 
--  [`Supplementary_Material`](Supplementary_Material/) contains an additional analysis not included in the final paper. Specifically, we examined how the partial correlation between the redundant node pair changed as the average correlation was increased from 0.01 to 0.99 by increments of 0.01. An excerpt containing our interpretation of the outcome is available here.
+-  [Supplementary_Material](Supplementary_Material/) contains an additional analysis not included in the final paper. Specifically, we examined how the partial correlation between the redundant node pair changed as the average correlation was increased from 0.01 to 0.99 by increments of 0.01. An excerpt containing our interpretation of the outcome is available here.
 
 ## Script Execution
 
-1. Run code in the [`01_sim_redun_networks.Rmd`](Simulation/01_sim_redun_networks.Rmd) file to reproduce our simulation. All conditions (i.e., $p$, $\rho$, redundancy level, and additional node type) are fully crossed for 500 iterations. Please edit `saveRDS()` to match your local directory before running the code.  
+1. Run code in the [01_sim_redun_networks.Rmd](Simulation/01_sim_redun_networks.Rmd) file to reproduce our simulation. All conditions (i.e., $p$, $\rho$, redundancy level, and additional node type) are fully crossed for 500 iterations. Please edit `saveRDS()` to match your local directory before running the code.  
 
-2. Load output from your local directory and run [`02_plots.Rmd`](Figures/02_plots.Rmd) to produce centrality measure figures. Example network figures from the manuscript can be reproduced using [`Conceptual_Figures.R`](Figures/Conceptual_Figures.R)  
+2. Load output from your local directory and run [02_plots.Rmd](Figures/02_plots.Rmd) to produce centrality measure figures. Example network figures from the manuscript can be reproduced using [Conceptual_Figures.R](Figures/Conceptual_Figures.R)  
 
 Each iteration initially samples from a normal distribution with an average correlation (i.e., 0.1, 0.3, 0.5, 0.7, 0.9) and a standard deviation of 0.1, a latent correlation matrix that is used to generate the random network. Then, the same latent correlation matrix is subsetted to generate the redundant network. 
 
