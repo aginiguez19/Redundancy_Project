@@ -11,7 +11,7 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 ## Script Execution
 
-***Files from the same or different directory may be needed to run the code (e.g., simulation RMD sources from two other files in the same directory).***
+***Files from the same or different directory may be needed to run the code (e.g., the simulation RMD also sources from two other files).***
 
 1. Run code in the [01_sim_redun_networks.Rmd](Simulation/01_sim_redun_networks.Rmd) file to reproduce our simulation. The logic of our code can be described as follows: All conditions (i.e., $p$, $\rho$, redundancy level, and additional node type) are fully crossed for 500 iterations. Each iteration initially samples from a normal distribution with an average correlation (i.e., 0.1, 0.3, 0.5, 0.7, 0.9) and a standard deviation of 0.1, a latent correlation matrix that is used to generate the random network. Then, the same latent correlation matrix is subsetted to generate the redundant network. Finally, Local and global centrality measures are computed for all networks as described in the manuscript. Please edit `saveRDS()` to match your local directory before running the code.  
 
