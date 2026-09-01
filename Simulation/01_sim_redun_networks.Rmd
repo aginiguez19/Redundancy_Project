@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Network Test & Setup:
+# Setup:
 
 ## Load Packages
 
@@ -27,6 +27,9 @@ source("RescaleCor.R")
 ### Simulation
 
 ```{r}
+
+#### Please change the file path to your preferred location! ####
+
 # Initial values & conditions
 nsim = 500
 loading = .9
@@ -36,7 +39,6 @@ conditions = expand.grid(
   mn.cor = c(0.1, 0.3, 0.5, 0.7, 0.9),
   clone.loading = c(0.7,.9))
 
-# nv = 5
 
 ncond = nrow(conditions)
 results = vector("list", length = ncond)
@@ -44,7 +46,7 @@ results = vector("list", length = ncond)
 
 
 
-
+start.time = Sys.time()
 for (c in 1:ncond){
   nv = conditions$nv[c]
   mn.cor = conditions$mn.cor[c]
@@ -118,8 +120,7 @@ lat.corr = lat.corr.full[1:nv, 1:nv]
   randompcor.graph = graph_from_adjacency_matrix(random.pcor,
                                                  mode = "undirected",
                                                  weighted = TRUE)
-  # random.cnx.wa =  E(randompcor.graph)[grepl("Random",
-  #                                            as_ids(E(randompcor.graph)))]
+
   randompcor.graph.wo.random =  delete_vertices(randompcor.graph,
                                                 "Random")
 
@@ -316,173 +317,15 @@ weights = 1/abs(E(rpcor.graph.wo.clone)$weight))
    random.pcor = random.pcor.vals
   )
  
-   # saveRDS(object = results, 
-   #         file = "C:/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation.results(2).rds")
- 
+
     saveRDS(object = results, 
-           file = "/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1_R2.rds")
- 
+           file = "/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/Simulation/simulation_resultsP1.rds")
+
 }
-
-
-
-
-
-
-
-# Remake of Figure 1
-# pp = averageLayout(qgraph(redun.pcor,
-#             edge.labels = TRUE,
-#             DoNotPlot = TRUE))
-# 
-# node.colors = c("white", "white", "white", "gold")
-# colnames(redun.pcor) = c("P1", "P2", "P3", "Target", "Redun")
-# colnames(true.pcor) = c("P1", "P2", "P3", "Target")
-# 
-# node.colors.2 = c("white", "white", "white", "gold","lightblue")
-# 
-# jpeg(filename = "Redundancy_Fig1.jpeg",
-#      width = 12,
-#      height = 8,
-#      res = 500,
-#      units = "in")
-# 
-# 
-# par(mfrow = c(1, 2))
-# qgraph(true.pcor,
-#        layout = pp[1:4,],
-#        edge.labels = TRUE,
-#        color = node.colors,
-#        labels = colnames(true.pcor),
-#        label.cex = 1.15,
-#        vsize = 12,
-#        edge.label.cex = 1.8,
-#        maximum = 0.6,
-#        esize = 25,
-#        theme = "colorblind")
-# text(-.28, 1.20, "Original Network",
-#      cex = 1.5, adj = 1)
-# 
-# qgraph(redun.pcor,
-#        layout = pp,
-#        edge.labels = TRUE,
-#        color = node.colors.2,
-#        labels = colnames(redun.pcor),
-#        label.cex = 1.15,
-#        vsize = 12,
-#        edge.label.cex = 1.8,
-#        maximum = 0.6,
-#        edge.label.position = 0.42,
-#        esize = 25,
-#        theme = "colorblind")
-# text(-0.1, 1.20, "Redundant Network",
-#      cex = 1.5, adj = 1)
-# dev.off()
-# 
-# 
-# 
-# 
-# # Remake of Figure 3
-# pp = averageLayout(qgraph(random.pcor,
-#             edge.labels = TRUE,
-#             DoNotPlot = TRUE))
-# 
-# node.colors = c("white", "white", "white", "gold")
-# colnames(random.pcor) = c("P1", "P2", "P3", "Target", "Random")
-# 
-# 
-# node.colors.2 = c("white", "white", "white", "gold","lightblue")
-# 
-# 
-# jpeg(filename = "Random_Fig3.jpeg",
-#      width = 12,
-#      height = 8,
-#      res = 500,
-#      units = "in")
-# 
-# 
-# par(mfrow = c(1, 2))
-# qgraph(true.pcor,
-#        layout = pp[1:4,],
-#        edge.labels = TRUE,
-#        color = node.colors,
-#        labels = colnames(true.pcor),
-#        label.cex = 1.15,
-#        vsize = 12,
-#        edge.label.cex = 1.8,
-#        esize = 25,
-#        maximum = 0.48,
-#        cut = 0,
-#        theme = "colorblind")
-# text(-.45, 1.20, "Original Network",
-#      cex = 1.35, adj = 1)
-# 
-# qgraph(random.pcor,
-#        layout = pp,
-#        edge.labels = TRUE,
-#        color = node.colors.2,
-#        labels = colnames(random.pcor),
-#        label.cex = 1.15,
-#        vsize = 12,
-#        edge.label.cex = 1.8,
-#        edge.label.position = 0.25,
-#        esize = 25,
-#        maximum = 0.48,
-#        cut = 0,
-#        theme = "colorblind")
-# text(-0.5, 1.20, "Random Network",
-#      cex = 1.35, adj = 1)
-# dev.off()
-```
-
-
-
-
-### Tasks
-
-1) Gather data on all conditions, if taking too long consider using onion method
-2) Save partial correlations in each run
-
-
-
-
-
-
-### Old Code
-
-```{r}
-# # qgraph plots and graph matrices
-#   g1 = qgraph(true.pcor_subset, edge.labels = TRUE, DoNotPlot = TRUE)
-#   if (i == 1){
-#   g2 = qgraph(redun.pcor, edge.labels = TRUE, DoNotPlot = TRUE)
-#   pp = averageLayout(g2)}
-#   png(filename = paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Network Graphs/HCSF_Graph_', i, ".png"), width = 1000, height = 500)
-#   par(mfrow = c(1, 2))
-#   g1 = qgraph(true.pcor_subset, layout = pp[1:nv,], edge.labels = TRUE, theme = "colorblind", labels = colnames(the.g)[1:nv], maximum = 1, vsize = 11)
-#   g2 = qgraph(redun.pcor,layout = pp, edge.labels = TRUE, theme = "colorblind", labels = colnames(the.g)[(nv+1):(2*nv + 1)], maximum = 1, vsize = 11)
-#   graphics.off()
-#   the.g = graph_from_adjacency_matrix(the.g, mode = "undirected", weighted = TRUE)
-#   saveRDS(the.g, paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Graph Matrices/HCSF_File_', i, ".RDS"))
-#   
-#   
-# 
-#   
-# if (!is.null(hcsf_all)) {
-#   saveRDS(hcsf_all, paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Metrics/HCSF_', i , ".RDS"))
-#   prev_file = paste0('/Users/abraham/Library/CloudStorage/Box/Redundancy_Project/R/Metrics/HCSF_', i - 1, ".RDS")
-#   if (file.exists(prev_file)) {
-#     file.remove(prev_file)
-#   }
-# 
-# } else {
-#   message(paste0("Ope, this run had an error. Preserving simulation as of Replication ", i))
-# }
+end.time = Sys.time()
+time.taken = end.time - start.time
+print(time.taken)
+xfun::session_info()
 
 ```
-
-
-
-
-
-
 

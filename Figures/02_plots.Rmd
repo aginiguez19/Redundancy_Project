@@ -9,21 +9,15 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Read in data and load required packages 
+# Read in data and load required packages
+
 ```{r}
-# Laptop
-# data = readRDS("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation.results(2).rds")
 
-# data = readRDS("/Users/abraham/Desktop/simulation_results.rds")
+#### Please change the file path to your preferred location! ####
 
-# Desktop
-data = readRDS("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1.rds")
 
-data.R2 = readRDS("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/R/simulation_resultsP1_R2.rds")
+data = readRDS("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/Simulation/simulation_resultsP1.rds")
 
-View(data.R2)
-
-# data = readRDS("C:/Users/aginigue/Desktop/simulation_results.rds")
 
 # Packages 
 package.list = c("ggplot2", "tidyr", "ggridges",
@@ -38,514 +32,13 @@ invisible(sapply(package.list, function(package){
 
 ```
 
-# Local Metrics
-## Data Wrangling
+
+# Theme
+
+Emorie Beck, PhD, data viz [Custom Theme](https://emoriebeck.github.io/psc290-dataviz-WQ25/08-week8-workbook.html#custom-theme)
 
 ```{r}
-# Get the pre clone target node, post clone target node, post clone target node wo clone, difference between pre and post, difference between pre and post wo clone
 
-# data is a list of 12 lists in each of those 12 lists, there are 5 objects, I need the first two objects (the conditions, and the local metrics)
-
-
-# Get strength of target
-View(data)
-
-# Descriptives of networks 
-summarize_pcor <- function(data.R2) {
-  avg_offdiag <- function(mat) mean(mat[lower.tri(mat)])
-  
-  do.call(rbind, lapply(data.R2, function(cond) {
-    cbind(
-      cond$condition,
-      mean.true.pcor  = mean(sapply(cond$true.pcor,  avg_offdiag)),
-      mean.redun.pcor = mean(sapply(cond$redun.pcor, avg_offdiag)),
-      mean.random.pcor = mean(sapply(cond$random.pcor, avg_offdiag))
-    )
-  }))
-}
-
-results <- summarize_pcor(data.R2)
-
-results %>% 
-  filter(nv == 20) %>% 
-  summarize(mean = mean(mean.redun.pcor))
-
-
-
-
-
-
-
-data.target = lapply(X = data.R2,
-                     FUN = function(x){
-                       list(condition = x[[1]],
-                            G_TNS = x[[2]][ , "Target", "Betweenness"],
-                            G_RNS = x[[2]][ ,"Target.r", "Betweenness w/o Clone"],
-                            G_ANS = x[[4]][,"Target.r", "Betweenness w/o Random"])})
-# Tidy data 
-tibble.target = lapply(X = data.target,
-                       FUN = function(x){
-                         # condition = x$condition
-                         # metrics = x$metrics
-                         tibble(
-                           G_TNS = x$G_TNS,
-                           G_RNS = x$G_RNS,
-                           G_ANS = x$G_ANS) |>
-                           bind_cols(x$condition[rep(1, 500), ])})
-                           # target_pre = metrics[, "Target", "Betweenness"],
-                           # target_post = metrics[, "Target.r", "Betweenness"],
-                           # target_without_random = metrics[, "Target.r",
-                           #                                    "Betweenness w/o Random"]
-
-tibble.target = tibble.target |> 
-  bind_rows()
-
-# Pivot longer
-
-tibble.target = tibble.target |>
-  # group_by(mn.cor, clone.loading, nv) |> 
-  # mutate(delta = target_post - target_pre) |> 
-  pivot_longer(
-    cols = !c(mn.cor, nv, clone.loading),
-    names_to = "target_type",
-    values_to = "values") 
-
-
-# Add means and sds
-
-tibble.target = tibble.target |> 
-  group_by(target_type, mn.cor, nv, clone.loading) |> 
-  summarize(
-    mean = mean(values),
-    sd = sd(values),
-    .groups = "drop") |> 
-  mutate(target_type = factor(target_type,
-                              levels = c("G_TNS", "G_RNS",
-                                         "G_ANS"), # , "delta",
-                              ordered = TRUE),
-     # labels = c("target pre random",
-     #            "target post random",
-     #            "target without random",
-     #            "delta")
-
-         mn.cor = factor(mn.cor),
-         clone.loading = factor(clone.loading,
-                                levels = c(.7, .9),
-                                labels = c("Medium Redundancy", "High Redundancy")),
-         nv = factor(nv,
-                     levels = c(10, 20),
-                     labels = c("10 Node", "20 Node")))
-
-
-
-plot.data = tibble.target 
-# |> 
-#   filter(target_type == "target pre random"| target_type == "target without random")
-
-
-
-# Plot 
-
-# shared_ylim_strength <- c(0.25, 2.5)
-#shared_ylim <- c(0.1, 1.0)
-jpeg(filename = "Target_Betweenness(R2).jpeg",
-     width = 12,
-     height = 8,
-     res = 500,
-     units = "in")
-ggplot(data = plot.data, mapping = aes(x = mn.cor, 
-                                           y = mean,
-                                           shape = target_type,
-                                           color = target_type,
-                                           group = target_type)) +
-  geom_line() +
-  geom_point() +
-  geom_line(linewidth = 1.1) +   # increase from default 0.5
-  geom_point(size = 2.5) +
-  facet_grid(nv ~ clone.loading) +
-  labs(x = "Average Latent Variable Correlations (rho)",
-       y = "Betweenness")+
-  geom_errorbar(aes(ymin = mean - sd/sqrt(500),
-                   ymax = mean + sd/sqrt(500)),
-                linewidth = .5,
-                color = "black",
-                width = .09) +
-  scale_color_manual(name = "Network",
-                     labels = expression(G[TNS], G[RNS], G[ANS]),
-                     values = c("#00BFC4",
-                                "#F8766D",
-                                "#7CAE00")) +
-  scale_shape_manual(name = "Network",
-                     labels = expression(G[TNS], G[RNS], G[ANS]),
-                     values = c(15, 17, 16)) +
-  # guides(color = guide_legend(title = "Target Type")) +
-  # scale_y_continuous(limits = c(0.10, 1.0),
-  #                  breaks = seq(0.1, 1.0, by = 0.2)) +
-  # scale_y_continuous(limits = c(-0.5, 7),
-  #                  breaks = seq(0, 6, by = 2)) +
-# scale_y_continuous(limits = c(0.02, 0.18),
-#                    breaks = seq(0.02, 0.18, by = 0.04)) +
-  # scale_y_continuous(limits = c(0.25, 2.5),
-  #                  breaks = seq(0.25, 2.5, by = 0.5)) +
-  my_theme() +
-  theme(plot.title = element_text(hjust = .5))
-dev.off()
-
-# Colors
-# "#00BFC4",
-# "#7CAE00",
-# "#F8766D",
-# "#C77CFF" 
-
-# labels = c("target pre clone",
-#             "target post",
-#         "target without clone",
-#                 "delta")
-
-# values = c(15, 3, 17, 16 )
-
-```
-
-
-
-
-```{r}
-# Function to compute average local metrics
-compute.avg.diffs = function(array, node.names = NULL) {
-
-  n.nodes = dim(array)[2] # Get total number of nodes
-  p = (n.nodes - 1) / 2 # Get number of nodes in true node set
-
-  orig.idx = 1:p # true node set index
-  red.idx  = (p + 1):(2 * p) # redundant node set index excluding clone
-
-  diffs = array[, red.idx, ] - array[, orig.idx, ] # deltas (redundant node set - true node set)
-  avg.diffs = apply(diffs,
-                    c(2, 3),
-                    mean,
-                    na.rm = TRUE) # Applies a specified function (mean) to each column and matrix of my array returning an array 
-
-  df = as.data.frame(avg.diffs)
-
-  if (!is.null(node.names)) {
-    if (length(node.names) != p) {
-      stop("node_names length does not match number of original nodes")
-    }
-    rownames(df) = node.names
-  }
-
-  df
-}
-
-
-
-
-
-
-# Function to get average centrality metric of the target node for each condition
-# For now I am keeping at Strength
-
-
-compute.avg.target = function(array){
-  n.nodes = dim(array)[2]
-  p = (n.nodes-1)/2 # Target index
-  # Remove unnecessary matrices using grepl()
-  keep = !grepl(pattern = "w/o Clone",
-                x = dimnames(array)[[3]])
-  targets.before = array[,p,keep, drop = FALSE] # Select only target prior to including clone node
-  avg.target = apply(X = targets.before,
-                     MARGIN = c(2,3),
-                     FUN = mean,
-                     na.rm = TRUE)
-  df = as.data.frame(avg.target)
-  df
-}
-
-# SD of target node's centrality metric for each condition
-
-compute.sd.target = function(array){
-  n.nodes = dim(array)[2]
-  p = (n.nodes -1)/2
-  keep = !grepl(pattern = "w/o Clone",
-                x = dimnames(array)[[3]])
-  targets.before = array[,p,keep, drop = FALSE]
-  sd.target = apply(X = targets.before,
-                    MARGIN = c(2,3),
-                    FUN = sd,
-                    na.rm = TRUE)
-  df = as.data.frame(sd.target)
-  df
-}
-
-
-
-
-
-# List of results (means) for each condition
-results.target = lapply(data, function(condition){
-  df.local.target = compute.avg.target(condition$local.metrics)
-  
-  list(
-    condition = condition$condition,
-    local = df.local.target
-  )
-})
-
-# List of results (sds) for each condition
-
-results.target.sd = lapply(X = data,
-                           FUN = function(condition){
-                            df.local.target = compute.sd.target(condition$local.metrics)
-                            list(condition = condition$condition,
-                                 local = df.local.target)
-                           })
-
-
-
-# Function to compute average global metrics
-avg.global = function(array) {
-
-avg.global = colMeans(array)
-df = as.data.frame(avg.global)
-df
-}
-
-# Get average global metrics for each condition (Not saved atm)
-
-1
-
-# Function to compute sd of global metrics
-
-sd.global = function(array) {
-  sd.global = apply(array, c(2, 3), sd) # row, matrix 
-  df = as.data.frame(sd.global)
-  df
-}
-
-# Get sd of global metrics for each condition(Not saved atm)
-lapply(data, function(cond){
-  df.global.sd = sd.global(cond$global.metrics)
-})
-
-
-
-
-
-# Avg deltas for each condition
-diff.results = lapply(data, function(cond) {
-
-  df.local = compute.avg.diffs(cond$local.metrics)
-  df.random = compute.avg.diffs(cond$local.metrics.random)
-
-  list(
-    condition = cond$condition,
-    local     = df.local,
-    random    = df.random
-  )
-})
-
-
-# Function to compute sds 
-
-compute.sd.diffs = function(array, node.names = NULL) {
-
-  n.nodes = dim(array)[2]
-  p = (n.nodes - 1) / 2
-
-  orig.idx = 1:p
-  red.idx  = (p + 1):(2 * p)
-
-  diffs = array[, red.idx, ] - array[, orig.idx, ]
-  sd.diffs = apply(diffs, c(2, 3), sd, na.rm = TRUE)
-
-  df = as.data.frame(sd.diffs)
-
-  if (!is.null(node.names)) {
-    if (length(node.names) != p) {
-      stop("node_names length does not match number of original nodes")
-    }
-    rownames(df) = node.names
-  }
-
-  df
-}
-
-# SD deltas for each condition
-
-diff.results.sd = lapply(data, function(cond) {
-
-  df.local = compute.sd.diffs(cond$local.metrics)
-  df.random = compute.sd.diffs(cond$local.metrics.random)
-
-  list(
-    condition = cond$condition,
-    local     = df.local,
-    random    = df.random
-  )
-})
-
-
-# Function to collapse peripheral nodes 1-9
-
-
-
-collapse.peripherals = function(df){
-  n = nrow(df)
-# Get all peripheral nodes
-  peripherals = 1:(n-1)
-# Target node
-  target = n
-# Collapse all peripheral nodes into their mean and combine rows
-  collapsed = rbind(
-    colMeans(df[peripherals, , drop = FALSE]),
-    df[target, , drop = FALSE])
-  rownames(collapsed) = c("Peripheral Nodes", "Target")
-  collapsed
-}
-
-
-# Collapsed results for avg deltas 
-
-local.results.c = lapply(diff.results, function(x){
-  x$local = collapse.peripherals(x$local)
-  x$random = collapse.peripherals(x$random)
-  x
-})
-
-
-
-# Collapsed results for sd deltas
-
-local.results.csd = lapply(diff.results.sd, function(x){
-  x$local = collapse.peripherals(x$local)
-  x$random = collapse.peripherals(x$random)
-  x
-})
-
-
-```
-
-## Wrangling for Plotting
-
-```{r}
-# Function to prepare all conditions for plotting (Target only)
-
-df.metrics.target = map_dfr(results.target, function(x){
-  cond = x$condition
-  df = x$local
-  metrics = colnames(df)
-  
-  map_dfr(metrics, function(m){
-    tibble(
-      nv = cond$nv,
-      mn.cor = cond$mn.cor,
-      clone.loading = cond$clone.loading,
-      metric = m,
-      `Target` = df["Target", m]
-      
-    ) %>%
-      pivot_longer(cols = `Target`,
-                   names_to = "node.type",
-                   values_to = "value")
-  })
-  
-})
-
-# Get function to automatically prepare all conditions for plotting
-df.metrics = map_dfr(local.results.c, function(x) {
-
-  cond = x$condition
-  df = x$local
-
-  # Identify metric names without " w/o Clone"
-  metrics = unique(gsub(pattern = " w/o Clone", "", colnames(df)))
-  
-
-  map_dfr(metrics, function(m) {
-    tibble(
-      nv = cond$nv,
-      mn.cor = cond$mn.cor,
-      clone.loading = cond$clone.loading,
-      metric = m,
-      # Use back tick to keep names as written in tibble
-      `Peripheral Nodes` = df["Peripheral Nodes", m],
-      `Peripheral Nodes w/o Clone` = df["Peripheral Nodes",
-                                        paste0(m, " w/o Clone")],
-      `Target` = df["Target", m],
-      `Target w/o Clone` = df["Target", paste0(m, " w/o Clone")]
-    ) |>
-      pivot_longer(
-        cols = c(`Peripheral Nodes`, `Peripheral Nodes w/o Clone`,
-                 `Target`, `Target w/o Clone`),
-        names_to = "node.type",
-        values_to = "value"
-      )
-  })
-})
-
-
-df.metrics.sd.target = map_dfr(results.target.sd, function(x) {
-
-  cond = x$condition
-  df = x$local
-
-  # identify metric names without " w/o Clone"
-  metrics = colnames(df)
-
-  map_dfr(metrics, function(m) {
-    tibble(
-      nv = cond$nv,
-      mn.cor = cond$mn.cor,
-      clone.loading = cond$clone.loading,
-      metric = m,
-      `Target` = df["Target", m]
-    ) |>
-      pivot_longer(
-        cols = c(`Target`),
-        names_to = "node.type",
-        values_to = "value"
-      )
-  })
-})
-
-
-df.metrics.sd = map_dfr(local.results.csd, function(x) {
-
-  cond = x$condition
-  df = x$local
-
-  # identify metric names without " w/o Clone"
-  metrics = unique(gsub(" w/o Clone", "", colnames(df)))
-
-  map_dfr(metrics, function(m) {
-    tibble(
-      nv = cond$nv,
-      mn.cor = cond$mn.cor,
-      clone.loading = cond$clone.loading,
-      metric = m,
-      `Peripheral Nodes` = df["Peripheral Nodes", m],
-      `Peripheral Nodes w/o Clone` = df["Peripheral Nodes",
-                                        paste0(m, " w/o Clone")],
-      `Target` = df["Target", m],
-      `Target w/o Clone` = df["Target", paste0(m, " w/o Clone")]
-    ) |>
-      pivot_longer(
-        cols = c(`Peripheral Nodes`, `Peripheral Nodes w/o Clone`,
-                 `Target`, `Target w/o Clone`),
-        names_to = "node.type",
-        values_to = "value"
-      )
-  })
-})
-
-
-
-```
-
-## Theme 
-
-```{r}
-# Emorie Beck, PhD, data viz theme 
 my_theme = function(){
   theme_light() + 
   theme(
@@ -563,461 +56,147 @@ my_theme = function(){
 
 ```
 
-## Before Redundancy
+
+
+
+
+
+# Centrality Measures
+
+## Descriptives & Plots
+
 
 ```{r}
-# Function to automatically plot everything at once
-
-
-plot.metrics.before = function(metric.name){
-  # Get means
-  df.mean = df.metrics.target |> 
-    filter(metric == metric.name) |> 
-    rename(avg_target = value)
-  # Get sds 
-  df.sd = df.metrics.sd |> 
-    filter(metric == metric.name) |> 
-    rename(sd_target = value)
+# Descriptives of networks 
+summarize.pcor = function(data) {
   
-  # Join together data frames and filter node.type by everything but strings that have "w/o CLone"
+  avg_offdiag = function(mat) mean(mat[lower.tri(mat)])
   
-  df.plot.r = df.mean |> 
-    left_join(df.sd, 
-             by = c("nv", "mn.cor", "clone.loading",
-                    "metric", "node.type")) |> 
-    filter(!grepl(pattern = "w/o Clone", x =node.type))
-  
-  # Save to file 
-  file.name = paste0("C:/Users/aginigue/Box/Redundancy_Project/Output/Local Metrics/",
-                     gsub(" ",
-                          "_",
-                          metric.name),
-                     "(Before_Clone).jpg")
-  jpeg(file.name,
-       width = 12,
-       height = 6, 
-       res = 800, 
-       units = "in")
-# Mac: "/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/"
-# Desktop: "C:/Users/aginigue/Box/Redundancy_Project/Output/Local Metrics"  
+  do.call(rbind, lapply(data, function(cond) {
+    cbind(cond$condition,
+      mean.true.pcor  = mean(sapply(cond$true.pcor,  avg_offdiag)),
+      mean.redun.pcor = mean(sapply(cond$redun.pcor, avg_offdiag)),
+      mean.random.pcor = mean(sapply(cond$random.pcor, avg_offdiag)))}))}
 
-  # Plot 
-  
-  p = ggplot(df.plot.r, aes(x = factor(mn.cor), y = avg_target,
-                            color = factor(nv), group = nv)) +
-    geom_point(size = 3) +
-    geom_line()+
-    scale_color_manual(values = c("10" = "#f03b20",
-                                  "20" = "#3182bd")) +
-    facet_grid(rows = vars(clone.loading),
-               labeller = labeller(clone.loading = function(x) paste0("Clone Loading = ",x))) +
-    geom_errorbar(aes(ymin = avg_target - sd_target/sqrt(500),
-                      ymax = avg_target + sd_target/sqrt(500)),
-                  width = .05,
-                  color = "black",
-                  linewidth = 0.3) +
-    labs(title = "Strength of Target Node Before Clone Inclusion",
-         x = "Average Correlation",
-         y = paste0( metric.name),
-         color = "Network Size") +
-    geom_hline(yintercept = 0,
-               linetype = 3,
-               color = "black") +
-    my_theme() + 
-    theme(strip.text = element_text(face = "bold.italic"),
-          axis.title.y = element_text(margin = margin(r = 15)))
-  plot(p)
-  dev.off()
-}
+results <- summarize.pcor(data)
 
-metrics = c("Strength")
-
-for (m in metrics) {
-  plot.metrics.before(m)
-}
+results %>% 
+  filter(nv == 20) %>% 
+  summarize(mean = mean(mean.redun.pcor))
 ```
 
 
-
-## After Redundancy
-
 ```{r}
 
-```
-
-
-## Redundancy With Clone 
-
-
-```{r}
-# Function to automatically plot everything at once
-
-
-plot.metrics.redun = function(metric.name){
-  # Get means
-  df.mean = df.metrics |> 
-    filter(metric == metric.name) |> 
-    rename(avg_delta = value)
-  # Get sds 
-  df.sd = df.metrics.sd |> 
-    filter(metric == metric.name) |> 
-    rename(sd_delta = value)
-  
-  # Join together data frames and filter node.type by everything but strings that have "w/o CLone"
-  
-  df.plot.r = df.mean |> 
-    left_join(df.sd, 
-             by = c("nv", "mn.cor", "clone.loading",
-                    "metric", "node.type")) |> 
-    filter(!grepl(pattern = "w/o Clone", x =node.type))
-  
-  # Save to file 
-  file.name = paste0("C:/Users/aginigue/Box/Redundancy_Project/Output/Local Metrics/",
-                     gsub(" ",
-                          "_",
-                          metric.name),
-                     "(redun.clone).jpg")
-  jpeg(file.name,
-       width = 12,
-       height = 6, 
-       res = 800, 
-       units = "in")
-  
-  # Plot 
-  
-  p = ggplot(df.plot.r, aes(x = node.type, y = avg_delta,
-                            color = factor(nv))) +
-    geom_point(size = 3,
-               aes(shape = node.type)) +
-    scale_shape_manual(values = c("Peripheral Nodes" = 18,
-                                  "Target" = 16)) +
-    scale_color_manual(values = c("10" = "#f03b20",
-                                  "20" = "#3182bd")) +
-    facet_grid(rows = vars(clone.loading),
-               cols = vars(mn.cor),
-               labeller = labeller(mn.cor = function(x) paste0("Population Correlation = ",
-                                                               x),
-                                   clone.loading = function(x) paste0("Clone Loading = ",
-                                                                      x))) +
-    geom_errorbar(aes(ymin = avg_delta - sd_delta/sqrt(500),
-                      ymax = avg_delta + sd_delta/sqrt(500)),
-                  width = .1,
-                  color = "black",
-                  linewidth = 0.3) +
-    labs(x = "Node Type",
-         y = paste0("\u0394 ", metric.name),
-         color = "Network Size") +
-    geom_hline(yintercept = 0,
-               linetype = 3,
-               color = "black") +
-    my_theme() + 
-    theme(strip.text = element_text(face = "bold.italic"),
-          axis.text.x = element_text(angle = 20, hjust =1),
-          axis.title.y = element_text(margin = margin(r = 15)))
-  plot(p)
-  dev.off()
-}
-
-metrics = c("Expected Influence", "Strength", "Closeness", "Betweenness")
-
-for (m in metrics) {
-  plot.metrics.redun(m)
-}
-
-```
+# Plots
 
 
 
+# dimnames(data[[1]][["local.metrics"]]) Get each local centrality measure name, matrix 3
 
-## Data Wrangling for Plotting (Random Node)
+# Edit for the desired centrality element
+data.target = lapply(X = data.R2,
+                     FUN = function(x){
+                       list(condition = x[[1]],
+                            G_TNS = x[[2]][ , "Target", "Betweenness"],
+                            G_RNS = x[[2]][ ,"Target.r", "Betweenness w/o Clone"],
+                            G_ANS = x[[4]][,"Target.r", "Betweenness w/o Random"])})
+# Tidy data 
 
-```{r}
-# Random Mean results 
-
-df.metrics.random = map_dfr(local.results.c, function(x) {
-# map_dfr() from the purr package is used to iterate a function over a list or vector and automatically combines the results into a single data frame
-  cond = x$condition # Save each condition of 12 (dataframe)
-  df = x$random # Take each list containing the random additional node results (data frame)
-# Each list must contain a dataframe for map_dfr to work
-
-# Identify base metric names (without " w/o Clone")
-  metrics = unique(gsub(" w/o Random", "", colnames(df)))
-# Unique() can be used to remove duplicate elements, and gsub() requires a pattern to look for, a replacement string to substitute the pattern string, and a vector or data frame in where to replace the pattern
-  
-  # Use of map_dfr() again to create a data frame
-  map_dfr(metrics, function(m) {
-    tibble(
-      nv = cond$nv, # Save the # of nodes
-      mn.cor = cond$mn.cor, # Save correlation conditions
-      clone.loading = cond$clone.loading, # The loading at for each additional node, this should say random and needs to be fixed 
-      metric = m, # Idk what this does, need to look into it, but it takes some object "m" and then uses it to represent the metric
-      `Peripheral Nodes` = df["Peripheral Nodes", m],
-      `Peripheral Nodes w/o Random` = df["Peripheral Nodes",
-                                        paste0(m, " w/o Random")],
-      `Target` = df["Target", m],
-      `Target w/o Random` = df["Target", paste0(m, " w/o Random")]
-    ) |>
-      pivot_longer(
-        cols = c(`Peripheral Nodes`, `Peripheral Nodes w/o Random`,
-                 `Target`, `Target w/o Random`),
-        names_to = "node.type",
-        values_to = "value"
-      )
-  })
-})
+tibble.target = lapply(X = data.target,
+                       FUN = function(x){
+                         tibble(
+                           G_TNS = x$G_TNS,
+                           G_RNS = x$G_RNS,
+                           G_ANS = x$G_ANS) |>
+                           bind_cols(x$condition[rep(1, 500), ])})
 
 
-df.metrics.sd.random = map_dfr(local.results.csd, function(x) {
+tibble.target = tibble.target |> 
+  bind_rows()
 
-  cond = x$condition
-  df = x$random
+# Pivot longer
 
-  # identify base metric names (without " w/o Clone")
-  metrics = unique(gsub(" w/o Random", "", colnames(df)))
-
-  map_dfr(metrics, function(m) {
-    tibble(
-      nv = cond$nv,
-      mn.cor = cond$mn.cor,
-      clone.loading = cond$clone.loading,
-      metric = m,
-      `Peripheral Nodes` = df["Peripheral Nodes", m],
-      `Peripheral Nodes w/o Random` = df["Peripheral Nodes",
-                                        paste0(m, " w/o Random")],
-      `Target` = df["Target", m],
-      `Target w/o Random` = df["Target", paste0(m, " w/o Random")]
-    ) |>
-      pivot_longer(
-        cols = c(`Peripheral Nodes`, `Peripheral Nodes w/o Random`,
-                 `Target`, `Target w/o Random`),
-        names_to = "node.type",
-        values_to = "value"
-      )
-  })
-})
+tibble.target = tibble.target |>
+  pivot_longer(
+    cols = !c(mn.cor, nv, clone.loading),
+    names_to = "target_type",
+    values_to = "values") 
 
 
-```
+# Add means and sds
 
-## Random Loading = .9
+tibble.target = tibble.target |> 
+  group_by(target_type, mn.cor, nv, clone.loading) |> 
+  summarize(
+    mean = mean(values),
+    sd = sd(values),
+    .groups = "drop") |> 
+  mutate(target_type = factor(target_type,
+                              levels = c("G_TNS",
+                                         "G_RNS",
+                                         "G_ANS"),
+                              ordered = TRUE),
 
-### Plotting Function
-
-```{r}
-
-plot.metrics.random = function(metric_name){
-  # Filter means
-  df.mean = df.metrics.random |> 
-    filter(clone.loading == .9 & metric == metric_name)
-  # Filter sds
-  df.sd = df.metrics.sd.random |> 
-    filter(clone.loading == .9 & metric == metric_name) |> 
-    rename(sd_value = value)
-  
-  # join the two data frames
-  df.plot.r = df.mean |> 
-    left_join(df.sd,
-              by = c("nv", "mn.cor", "clone.loading",
-                     "metric", "node.type"))
-  # file
-  file_name = paste0(
-    "/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/",
-    gsub(" ", "_", metric_name),
-    "(random.09).jpg"
-  )
-  
-  jpeg(file_name,
-       width = 12,
-       height = 6,
-       res = 800,
-       units = "in")
-  
-  p = ggplot(df.plot.r, aes(x = node.type,
-                            y = value,
-                            color = factor(nv))) + 
-    geom_point(size = 3, aes(shape = node.type)) + 
-    
-    scale_shape_manual(
-      values = c(
-        "Peripheral Nodes" = 18,
-        "Peripheral Nodes w/o Random" = 15,
-        "Target" = 16,            
-        "Target w/o Random" = 17)) +
-    scale_color_manual(
-      values = c(
-        "10" = "darkturquoise",  
-        "20" = "firebrick2")) +
-    
-    facet_wrap(~ mn.cor,
-               nrow = 3,
-               labeller = labeller(
-                 mn.cor = function(x) paste0("Correlation =  ", x))) +
-    geom_errorbar(
-      aes(ymin = value - sd_value / sqrt(500),
-          ymax = value + sd_value / sqrt(500)),
-      width = 0.1,
-      color = "black",
-      linewidth = 0.3) +
-    labs(
-      x = "Node Type",
-      y = paste0("\u0394 ", metric_name),
-      color = "Network Size"
-    ) +
-    
-    geom_hline(yintercept = 0,
-               linetype = 2,
-               color = "black") +
-    my_theme() +
-    theme(
-      strip.text = element_text(face = "bold.italic"),
-      axis.text.x = element_text(angle = 20, hjust = 1))
-  plot(p)
-  dev.off()
-}
-  
-
-metrics = c("Expected Influence", "Strength", "Closeness",
-            "Betweenness")
-
-
-for (m in metrics) {
-  plot.metrics.random(m)
-}
+         mn.cor = factor(mn.cor),
+         clone.loading = factor(clone.loading,
+                                levels = c(.7, .9),
+                                labels = c("Medium Redundancy", "High Redundancy")),
+         nv = factor(nv,
+                     levels = c(10, 20),
+                     labels = c("10 Node", "20 Node")))
 
 
 
+plot.data = tibble.target 
 
 
-
-
-
-
-```
-
-### EI
-
-```{r}
-
-# Save automatically to computer 
-
-jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Expected Influence Plot (random.09).jpg",
-     width= 12,
-     height= 6,
-     res=800,
-     units="in")
-
-# Filter by specific metric for means
-
-ei.09.r = df.metrics.random |> 
-  filter(clone.loading == .9 & metric == "Expected Influence")
-
-# Filter by specific metric for sds
-df.sd.r = df.metrics.sd.random |> 
-  filter(clone.loading == 0.9, metric == "Expected Influence") |>
-  rename(sd_value = value)
-
-df.plot = ei.09.r |> 
-  left_join(df.sd.r, by = c("nv", "mn.cor", "clone.loading", "metric", "node.type"))
-
-
-ggplot(df.plot, aes(x = node.type,
-                     y = value,
-                     color = factor(nv),
-                     group = interaction(node.type, nv))) +
-  geom_point(size = 3, aes(shape = node.type)) +
-  scale_shape_manual(
-  values = c(
-    "Peripheral Nodes" = 18,
-    "Peripheral Nodes w/o Random" = 15,
-    "Target" = 16,            
-    "Target w/o Random" = 17)) +
-    scale_color_manual(
-    values = c(
-      "10" = "darkturquoise",  
-      "20" = "firebrick2"   
-    )) +
-  facet_wrap(~ mn.cor,
-             nrow = 3,
-             labeller = labeller(mn.cor = function(x) paste0("Correlation =  ", x))) +
-geom_errorbar(aes(ymin = value - sd_value / sqrt(500),
-                    ymax = value + sd_value / sqrt(500)),
-                width = 0.1, color = "black", linewidth = 0.3) +
-  labs(
-    x = "Node Type",
-    y =  "\u0394 Expected Influence",
-    color = "Network Size"
-  ) +
-  geom_hline(yintercept = 0,
-             linetype = 2,
-             color = "black") +
-  coord_cartesian(ylim = c(-0.5, 0.5)) +
-  guides(shape = "none") + 
+jpeg(filename = "Target_Betweenness.jpeg",
+     width = 12,
+     height = 8,
+     res = 500,
+     units = "in")
+ggplot(data = plot.data, mapping = aes(x = mn.cor, 
+                                           y = mean,
+                                           shape = target_type,
+                                           color = target_type,
+                                           group = target_type)) +
+  geom_line() +
+  geom_point() +
+  geom_line(linewidth = 1.1) +  
+  geom_point(size = 2.5) +
+  facet_grid(nv ~ clone.loading) +
+  labs(x = "Average Latent Variable Correlations (rho)",
+       y = "Betweenness")+
+  geom_errorbar(aes(ymin = mean - sd/sqrt(500),
+                   ymax = mean + sd/sqrt(500)),
+                linewidth = .5,
+                color = "black",
+                width = .09) +
+  scale_color_manual(name = "Network",
+                     labels = expression(G[TNS], G[RNS], G[ANS]),
+                     values = c("#00BFC4",
+                                "#F8766D",
+                                "#7CAE00")) +
+  scale_shape_manual(name = "Network",
+                     labels = expression(G[TNS], G[RNS], G[ANS]),
+                     values = c(15, 17, 16)) +
+  # scale_y_continuous(limits = c(0.10, 1.0),
+  #                  breaks = seq(0.1, 1.0, by = 0.2)) +
+  # scale_y_continuous(limits = c(-0.5, 7),
+  #                  breaks = seq(0, 6, by = 2)) +
+  # scale_y_continuous(limits = c(0.02, 0.18),
+  #                    breaks = seq(0.02, 0.18, by = 0.04)) +
+  # scale_y_continuous(limits = c(0.25, 2.5),
+  #                  breaks = seq(0.25, 2.5, by = 0.5)) +
   my_theme() +
-  theme(
-    strip.text = element_text(face = "bold.italic"),
-    axis.text.x = element_text(angle = 20, hjust = 1))
+  theme(plot.title = element_text(hjust = .5))
 dev.off()
+
+ 
 
 
 ```
 
-# Global Metrics
 
-## Weighted Density C1
-
-```{r}
-# Subset each array for global metrics
-
-global.metrics = lapply(data, function(x){
-  list(
-   condition =  x[[1]],
-   global = x[[3]])
-})
-
-wd.1 = as.data.frame(global.metrics[[1]]$global[,,"Weighted Density"])
-
-
-stacked.wd.1 = stack(x = wd.1, select = c("True Network", "Redundant Network", "Redundant Network w/o Clone"))
-
-
-
-jpeg("/Users/abraham/Library/CloudStorage/Box-Box/Redundancy_Project/Output/Weighted Density Plot (C1).jpg",
-     width= 12,
-     height= 6,
-     res=800,
-     units="in")
-common_theme = theme(
-  axis.title.y = element_blank(), 
-  axis.ticks.y = element_blank(),  
-  plot.title = element_text(hjust = 0.5),   
-  legend.position = "right",        
-  legend.box = "vertical",
-  legend.justification = "center"   
-)
-
-# Jitter ridgeline plot
-  ggplot(stacked.wd.1, aes(
-  x = values,
-  y = ind,
-  fill = ind)) +
-  geom_density_ridges(aes(point_color = ind,
-        point_fill = ind,
-        point_shape = ind),
-        alpha = .2,
-        point_alpha = 1,
-        jittered_points = TRUE) +
-  scale_point_color_hue(l = 40) +
-  scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23)) +
-  scale_y_discrete(labels = c("True Network",
-                              "Redundant Network",
-                              "Redudant Network w/o Clone")) +
-  labs(x = NULL,
-       y = "Network",
-       title = "Weighted Density Ridgeline Plot") +
-  common_theme + 
-    my_theme()+
-  theme(legend.position = "none")
-dev.off()
-
-```
 
