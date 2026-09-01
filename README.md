@@ -13,7 +13,7 @@ This repository contains the `.R` files to reproduce our simulation results and 
 
 1. Run code in the [01_sim_redun_networks.Rmd](Simulation/01_sim_redun_networks.Rmd) file to reproduce our simulation. The logic of our code can be described as follows: All conditions (i.e., $p$, $\rho$, redundancy level, and additional node type) are fully crossed for 500 iterations. Each iteration initially samples from a normal distribution with an average correlation (i.e., 0.1, 0.3, 0.5, 0.7, 0.9) and a standard deviation of 0.1, a latent correlation matrix that is used to generate the random network. Then, the same latent correlation matrix is subsetted to generate the redundant network. Finally, Local and global centrality measures are computed for all networks as described in the manuscript. Please edit `saveRDS()` to match your local directory before running the code.  
 
-2. Load output from your local directory and run [02_plots.Rmd](Figures/02_plots.Rmd) to produce centrality measure figures. Example network figures from the manuscript can be reproduced using [Conceptual_Figures.R](Figures/Conceptual_Figures.R). HTML code for the simulation design figure is found here: [sim_design.html](Figures/sim_design.html) 
+2. Load output from your local directory, and run [02_plots.Rmd](Figures/02_plots.Rmd) to produce centrality measure figures. Example network figures from the manuscript can be reproduced using [Conceptual_Figures.R](Figures/Conceptual_Figures.R). HTML code for the simulation design figure is found here: [sim_design.html](Figures/sim_design.html) 
  
 
 ## Runtime
