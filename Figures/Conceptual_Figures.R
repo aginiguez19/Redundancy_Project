@@ -1,7 +1,9 @@
 
 source("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/Simulation/RescaleCor.R")
 source("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/Simulation/00_project_functions.R")
-library(qgraph)
+library("groundhog")
+groundhog.library("qgraph", date = '2026-08-30')
+
 
 set.seed(1111)
 

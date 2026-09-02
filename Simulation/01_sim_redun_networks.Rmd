@@ -16,8 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Load Packages
 
 ```{r message = FALSE}
-library(qgraph)
-library(igraph)
+
+library("groundhog")
+pkgs = c("qgraph", "igraph")
+groundhog.library(pkg = pkgs, date = '2026-08-30')
 source("00_project_functions.R")
 source("RescaleCor.R")
 

@@ -20,15 +20,17 @@ data = readRDS("/Users/aginigue/Library/CloudStorage/Box-Box/Redundancy_Project/
 
 
 # Packages 
-package.list = c("ggplot2", "tidyr", "ggridges",
+library("groundhog")
+pkgs.list = c("ggplot2", "tidyr", "ggridges",
                  "patchwork", "dplyr", "purrr", "stringr")
+groundhog.library(pkg = pkgs.list, date = '2026-08-30')
 
-invisible(sapply(package.list, function(package){
-  if(!require(package, character.only = TRUE)){
-    install.packages(package, dependencies = TRUE)
-  }
-  library(package, character.only = TRUE)
-}))
+# invisible(sapply(package.list, function(package){
+#   if(!require(package, character.only = TRUE)){
+#     install.packages(package, dependencies = TRUE)
+#   }
+#   library(package, character.only = TRUE)
+# }))
 
 ```
 
@@ -40,17 +42,18 @@ Emorie Beck, PhD, data viz [Custom Theme](https://emoriebeck.github.io/psc290-da
 ```{r}
 
 my_theme = function(){
-  theme_light() + 
+  theme_light(base_size = 11, base_family = "sans") + 
   theme(
     legend.position = "right"
-    , legend.title = element_text(face = "bold", size = rel(1.8))
-    , legend.text = element_text(face = "italic", size = rel(1.8))
-    , axis.text = element_text(face = "bold", size = rel(1.8), color = "black")
-    , axis.title = element_text(face = "bold", size = rel(1.8))
-    , plot.title = element_text(face = "bold", size = rel(1.8), hjust = .5)
-    , plot.subtitle = element_text(face = "italic", size = rel(1.8), hjust = .5)
-    , strip.text = element_text(face = "bold", size = rel(1.8), color = "white")
-    , strip.background = element_rect(fill = "black")
+    , legend.title = element_text(face = "plain", size = rel(1.8))
+    , legend.text = element_text(face = "plain", size = rel(1.8))
+    , axis.text = element_text(face = "plain", size = rel(1.8), color = "black")
+    , axis.title = element_text(face = "plain", size = rel(1.8))
+    , plot.title = element_blank()
+    , plot.subtitle = element_blank()
+    , strip.text = element_text(face = "plain", size = rel(1.8), color = "black")
+    , strip.background = element_rect(fill = "gray90", color = "gray70")
+    , panel.grid.minor = element_blank()
     )
 }
 
@@ -88,107 +91,78 @@ results %>%
 
 ```{r}
 
-# Plots
+# dimnames(data[[1]]$"local.metrics") To get correct names for local measures
+
+# dimnames(data[[1]]$"global.metrics") To get correct names for global measures
 
 
 
-# dimnames(data[[1]][["local.metrics"]]) Get each local centrality measure name, matrix 3
 
-# Edit for the desired centrality element
-data.target = lapply(X = data.R2,
+new.data = lapply(X = data,
+                     FUN = function(x) {
+                     list(condition = x$condition, 
+                          G_TNS = x$local.metrics[,"Target", "Expected Influence"],
+                          G_RNS = x$local.metrics[,"Target.r", "Expected Influence w/o Clone"],
+                          G_ANS = x$local.metrics.random[, "Target.r", "Expected Influence w/o Random"])})
+# dimnames(data[[1]]$local.metrics)
+
+tibble.data = lapply(X = new.data,
                      FUN = function(x){
-                       list(condition = x[[1]],
-                            G_TNS = x[[2]][ , "Target", "Betweenness"],
-                            G_RNS = x[[2]][ ,"Target.r", "Betweenness w/o Clone"],
-                            G_ANS = x[[4]][,"Target.r", "Betweenness w/o Random"])})
-# Tidy data 
-
-tibble.target = lapply(X = data.target,
-                       FUN = function(x){
-                         tibble(
-                           G_TNS = x$G_TNS,
-                           G_RNS = x$G_RNS,
-                           G_ANS = x$G_ANS) |>
-                           bind_cols(x$condition[rep(1, 500), ])})
-
-
-tibble.target = tibble.target |> 
-  bind_rows()
-
-# Pivot longer
-
-tibble.target = tibble.target |>
-  pivot_longer(
-    cols = !c(mn.cor, nv, clone.loading),
-    names_to = "target_type",
-    values_to = "values") 
-
-
-# Add means and sds
-
-tibble.target = tibble.target |> 
-  group_by(target_type, mn.cor, nv, clone.loading) |> 
-  summarize(
-    mean = mean(values),
-    sd = sd(values),
-    .groups = "drop") |> 
-  mutate(target_type = factor(target_type,
-                              levels = c("G_TNS",
-                                         "G_RNS",
-                                         "G_ANS"),
-                              ordered = TRUE),
-
-         mn.cor = factor(mn.cor),
-         clone.loading = factor(clone.loading,
-                                levels = c(.7, .9),
-                                labels = c("Medium Redundancy", "High Redundancy")),
-         nv = factor(nv,
+                       tibble(
+                         G_TNS = x$G_TNS,
+                         G_RNS = x$G_RNS,
+                         G_ANS = x$G_ANS) |> 
+                         bind_cols(x$condition[rep(1, 500), ])}) |> 
+  bind_rows() |> 
+  pivot_longer(cols = !c(mn.cor, nv, clone.loading),
+               names_to = "Network",
+               values_to = "Value") |>
+  group_by(Network, mn.cor, nv, clone.loading) |> 
+  summarize(Mean = mean(Value),
+            SD = sd(Value),
+            .groups = "drop") |> 
+  mutate_at(c("Network", "mn.cor"), factor) |> 
+  mutate(clone.loading = factor(clone.loading,
+                                levels = c(0.7, 0.9),
+                                labels = c("Medium Redundancy",
+                                           "High Redundancy")),
+         nv = factor(nv, 
                      levels = c(10, 20),
-                     labels = c("10 Node", "20 Node")))
+                     labels = c("10 Node", "20 Node")),
+         Network = factor(Network,
+                          levels = c("G_TNS", "G_RNS", "G_ANS"),
+                          ordered = TRUE))
 
 
 
-plot.data = tibble.target 
 
-
-jpeg(filename = "Target_Betweenness.jpeg",
+jpeg(filename = "Target_Expected Influence.jpeg",
      width = 12,
      height = 8,
      res = 500,
      units = "in")
-ggplot(data = plot.data, mapping = aes(x = mn.cor, 
-                                           y = mean,
-                                           shape = target_type,
-                                           color = target_type,
-                                           group = target_type)) +
-  geom_line() +
-  geom_point() +
-  geom_line(linewidth = 1.1) +  
+
+ggplot(data = tibble.data, mapping = aes(x = mn.cor, y = Mean,
+                       shape = Network, color = Network,
+                       group = Network)) + 
+  geom_line(linewidth = 1.0) +
   geom_point(size = 2.5) +
   facet_grid(nv ~ clone.loading) +
-  labs(x = "Average Latent Variable Correlations (rho)",
-       y = "Betweenness")+
-  geom_errorbar(aes(ymin = mean - sd/sqrt(500),
-                   ymax = mean + sd/sqrt(500)),
-                linewidth = .5,
+  geom_errorbar(aes(ymin = Mean - SD/sqrt(500),
+                    ymax = Mean + SD/sqrt(500)),
+                linewidth = .25,
                 color = "black",
-                width = .09) +
+                width = .1) +
+  labs(x = expression("Average Latent Variable Correlations" ~ (rho)),
+       y = "Expected Influence") +
   scale_color_manual(name = "Network",
-                     labels = expression(G[TNS], G[RNS], G[ANS]),
-                     values = c("#00BFC4",
-                                "#F8766D",
-                                "#7CAE00")) +
+                       labels = expression(G[TNS], G[RNS], G[ANS]),
+                       values = c("#00BFC4",
+                                  "#F8766D",
+                                  "#7CAE00")) +
   scale_shape_manual(name = "Network",
-                     labels = expression(G[TNS], G[RNS], G[ANS]),
-                     values = c(15, 17, 16)) +
-  # scale_y_continuous(limits = c(0.10, 1.0),
-  #                  breaks = seq(0.1, 1.0, by = 0.2)) +
-  # scale_y_continuous(limits = c(-0.5, 7),
-  #                  breaks = seq(0, 6, by = 2)) +
-  # scale_y_continuous(limits = c(0.02, 0.18),
-  #                    breaks = seq(0.02, 0.18, by = 0.04)) +
-  # scale_y_continuous(limits = c(0.25, 2.5),
-  #                  breaks = seq(0.25, 2.5, by = 0.5)) +
+                       labels = expression(G[TNS], G[RNS], G[ANS]),
+                       values = c(15, 17, 16)) +
   my_theme() +
   theme(plot.title = element_text(hjust = .5))
 dev.off()

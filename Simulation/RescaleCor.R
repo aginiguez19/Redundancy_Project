@@ -88,19 +88,3 @@ cor.gen = function(nvar = NULL,
   cat("\n")
   return(NULL)
 }
-# 
-# x = cor.gen(nvar = 3, 
-#             bg.cor = 0.30, 
-#             mn.cor = 0.50, 
-#             prop.cor = 1, 
-#             iter.lim = 50000, 
-#             sd = 0.5, 
-#             tol.eig = 1e-8, 
-#             mean.tol = 0.04, 
-#             clip = 0.99)
-# 
-# 
-# 
-# min(Re(eigen(temp)$values)) > 0 & isSymmetric(temp)
-# hist(temp[temp!=1])
-# mean(temp[temp!=1]); sd(temp[temp!=1])

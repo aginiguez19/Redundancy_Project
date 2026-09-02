@@ -1,8 +1,6 @@
-
-
-library(corpcor)
-library(igraph)
-library(tidyverse)
+library("groundhog")
+pkgs.2 = c("corpcor", "igraph", "tidyverse")
+groundhog.library(pkg = pkgs.2, date = '2026-08-30')
 
 # Create sequence of correlations
 cors = seq(from = 0.01, to = 0.99, by = 0.01)
