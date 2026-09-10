@@ -60,10 +60,6 @@ my_theme = function(){
 ```
 
 
-
-
-
-
 # Centrality Measures
 
 ## Descriptives & Plots
@@ -71,21 +67,30 @@ my_theme = function(){
 
 ```{r}
 # Descriptives of networks 
+avg.offdiag = function(mat) mean(mat[lower.tri(mat)])
+
 summarize.pcor = function(data) {
   
-  avg_offdiag = function(mat) mean(mat[lower.tri(mat)])
-  
-  do.call(rbind, lapply(data, function(cond) {
-    cbind(cond$condition,
-      mean.true.pcor  = mean(sapply(cond$true.pcor,  avg_offdiag)),
-      mean.redun.pcor = mean(sapply(cond$redun.pcor, avg_offdiag)),
-      mean.random.pcor = mean(sapply(cond$random.pcor, avg_offdiag)))}))}
+  lapply(data, function(x) {
+    tibble(x$condition,
+      mean.true.pcor  = mean(sapply(x$true.pcor,  avg.offdiag)),
+      mean.redun.pcor = mean(sapply(x$redun.pcor, avg.offdiag)),
+      mean.random.pcor = mean(sapply(x$random.pcor, avg.offdiag)))}) |> 
+    bind_rows()}
 
-results <- summarize.pcor(data)
+avg.pcor <- summarize.pcor(data)
 
-results %>% 
-  filter(nv == 20) %>% 
-  summarize(mean = mean(mean.redun.pcor))
+
+
+
+
+avg.pcor |>  
+  summarize(mean_true = mean(mean.true.pcor),
+            mean_redun = mean(mean.redun.pcor),
+            mean_random.pcor = mean(mean.random.pcor))
+
+
+
 ```
 
 
@@ -93,7 +98,7 @@ results %>%
 
 # dimnames(data[[1]]$"local.metrics") To get correct names for local measures
 
-# dimnames(data[[1]]$"global.metrics") To get correct names for global measures
+dimnames(data[[1]]$"global.metrics") # To get correct names for global measures
 
 
 
@@ -101,9 +106,9 @@ results %>%
 new.data = lapply(X = data,
                      FUN = function(x) {
                      list(condition = x$condition, 
-                          G_TNS = x$local.metrics[,"Target", "Expected Influence"],
-                          G_RNS = x$local.metrics[,"Target.r", "Expected Influence w/o Clone"],
-                          G_ANS = x$local.metrics.random[, "Target.r", "Expected Influence w/o Random"])})
+                          G_TNS = x$global.metrics[,"True Network", "APL"],
+                          G_RNS = x$global.metrics[,"Redundant Network w/o Clone", "APL"],
+                          G_ANS = x$global.metrics.random[, "Random Network w/o Random", "APL"])})
 # dimnames(data[[1]]$local.metrics)
 
 tibble.data = lapply(X = new.data,
@@ -136,32 +141,33 @@ tibble.data = lapply(X = new.data,
 
 
 
-jpeg(filename = "Target_Expected Influence.jpeg",
+pdf(file = "APL.pdf",
      width = 12,
-     height = 8,
-     res = 500,
-     units = "in")
+     height = 8)
+
+# res = 500,
+# units = "in"
 
 ggplot(data = tibble.data, mapping = aes(x = mn.cor, y = Mean,
                        shape = Network, color = Network,
                        group = Network)) + 
   geom_line(linewidth = 1.0) +
-  geom_point(size = 2.5) +
+  geom_point(size = 3.5) +
   facet_grid(nv ~ clone.loading) +
   geom_errorbar(aes(ymin = Mean - SD/sqrt(500),
                     ymax = Mean + SD/sqrt(500)),
-                linewidth = .25,
+                linewidth = .35,
                 color = "black",
-                width = .1) +
+                width = .2) +
   labs(x = expression("Average Latent Variable Correlations" ~ (rho)),
-       y = "Expected Influence") +
+       y = "Average Path Length (APL)") +
   scale_color_manual(name = "Network",
-                       labels = expression(G[TNS], G[RNS], G[ANS]),
+                       labels = expression(G[T], G[R], G[A]),
                        values = c("#00BFC4",
                                   "#F8766D",
                                   "#7CAE00")) +
   scale_shape_manual(name = "Network",
-                       labels = expression(G[TNS], G[RNS], G[ANS]),
+                       labels = expression(G[T], G[R], G[A]),
                        values = c(15, 17, 16)) +
   my_theme() +
   theme(plot.title = element_text(hjust = .5))

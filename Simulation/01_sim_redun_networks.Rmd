@@ -301,10 +301,8 @@ weights = 1/abs(E(randompcor.graph.wo.random)$weight))
   global.metrics[i, "Redundant Network", "APL"] = mean_distance(rpcor.graph, weights = 1/abs(E(rpcor.graph)$weight))
   global.metrics[i, "Redundant Network w/o Clone", "APL"] = mean_distance(rpcor.graph.wo.clone,
 weights = 1/abs(E(rpcor.graph.wo.clone)$weight))
-  global.metrics[i, "True Network", "Weighted Density"] = weighted.density(igrph.object = tpcor.graph,
-                                                                            abs = TRUE)
-  global.metrics[i, "Redundant Network", "Weighted Density"] = weighted.density(igrph.object = rpcor.graph,
-                                                                                 abs = TRUE)
+  global.metrics[i, "True Network", "Weighted Density"] = weighted.density(igrph.object = tpcor.graph,abs = TRUE)
+  global.metrics[i, "Redundant Network", "Weighted Density"] = weighted.density(igrph.object = rpcor.graph,abs = TRUE)
   global.metrics[i,"Redundant Network w/o Clone", "Weighted Density"] = weighted.density(igrph.object = rpcor.graph.wo.clone, abs = TRUE)
 }
 
