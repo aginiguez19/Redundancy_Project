@@ -96,7 +96,7 @@ avg.pcor |>
 
 ```{r}
 
-# dimnames(data[[1]]$"local.metrics") To get correct names for local measures
+dimnames(data[[1]]$"local.metrics") # To get correct names for local measures
 
 dimnames(data[[1]]$"global.metrics") # To get correct names for global measures
 
@@ -106,9 +106,9 @@ dimnames(data[[1]]$"global.metrics") # To get correct names for global measures
 new.data = lapply(X = data,
                      FUN = function(x) {
                      list(condition = x$condition, 
-                          G_TNS = x$global.metrics[,"True Network", "APL"],
-                          G_RNS = x$global.metrics[,"Redundant Network w/o Clone", "APL"],
-                          G_ANS = x$global.metrics.random[, "Random Network w/o Random", "APL"])})
+                          G_TNS = x$local.metrics[,"Target", "Closeness"],
+                          G_RNS = x$local.metrics[,"Target.r", "Closeness w/o Clone"],
+                          G_ANS = x$local.metrics.random[, "Target.r", "Closeness w/o Random"])})
 # dimnames(data[[1]]$local.metrics)
 
 tibble.data = lapply(X = new.data,
@@ -141,12 +141,17 @@ tibble.data = lapply(X = new.data,
 
 
 
-pdf(file = "APL.pdf",
+pdf(file = "Target_Closeness.pdf",
      width = 12,
-     height = 8)
+      height = 8)
 
 # res = 500,
 # units = "in"
+
+
+dropleadingzero <- function(l){
+  str_replace(sprintf("%.2f", as.numeric(l)), '0(?=.)', '')
+}
 
 ggplot(data = tibble.data, mapping = aes(x = mn.cor, y = Mean,
                        shape = Network, color = Network,
@@ -160,15 +165,16 @@ ggplot(data = tibble.data, mapping = aes(x = mn.cor, y = Mean,
                 color = "black",
                 width = .2) +
   labs(x = expression("Average Latent Variable Correlations" ~ (rho)),
-       y = "Average Path Length (APL)") +
+       y = "Closeness") +
   scale_color_manual(name = "Network",
                        labels = expression(G[T], G[R], G[A]),
-                       values = c("#00BFC4",
-                                  "#F8766D",
-                                  "#7CAE00")) +
+                       values = c("#0072B2",
+                                  "#D55E00",
+                                  "#E69F00")) +
   scale_shape_manual(name = "Network",
                        labels = expression(G[T], G[R], G[A]),
                        values = c(15, 17, 16)) +
+  scale_x_discrete(labels = dropleadingzero) +
   my_theme() +
   theme(plot.title = element_text(hjust = .5))
 dev.off()
