@@ -106,9 +106,9 @@ dimnames(data[[1]]$"global.metrics") # To get correct names for global measures
 new.data = lapply(X = data,
                      FUN = function(x) {
                      list(condition = x$condition, 
-                          G_TNS = x$local.metrics[,"Target", "Closeness"],
-                          G_RNS = x$local.metrics[,"Target.r", "Closeness w/o Clone"],
-                          G_ANS = x$local.metrics.random[, "Target.r", "Closeness w/o Random"])})
+                          G_TNS = x$global.metrics[,"True Network", "Weighted Density"],
+                          G_RNS = x$global.metrics[,"Redundant Network w/o Clone", "Weighted Density"],
+                          G_ANS = x$global.metrics.random[, "Random Network w/o Random", "Weighted Density"])})
 # dimnames(data[[1]]$local.metrics)
 
 tibble.data = lapply(X = new.data,
@@ -138,10 +138,17 @@ tibble.data = lapply(X = new.data,
                           levels = c("G_TNS", "G_RNS", "G_ANS"),
                           ordered = TRUE))
 
+# Rescale betweenness by the appropriate factor that matches (nv - 1)(nv-2)/2
+# rows = tibble.data$Network == "G_ANS" & tibble.data$nv == "20 Node"
+# tibble.data[rows, c("Mean", "SD")] = tibble.data[rows, c("Mean", "SD")] * scale.factor
+
+
+tibble.data = tibble.data |> 
+  filter(mn.cor != 0.9)
 
 
 
-pdf(file = "Target_Closeness.pdf",
+pdf(file = "Weighted_Density.pdf",
      width = 12,
       height = 8)
 
@@ -165,14 +172,14 @@ ggplot(data = tibble.data, mapping = aes(x = mn.cor, y = Mean,
                 color = "black",
                 width = .2) +
   labs(x = expression("Average Latent Variable Correlations" ~ (rho)),
-       y = "Closeness") +
+       y = "Weighted Density") +
   scale_color_manual(name = "Network",
-                       labels = expression(G[T], G[R], G[A]),
+                       labels = expression(G[T], tilde(G)[R], tilde(G)[A]),
                        values = c("#0072B2",
                                   "#D55E00",
                                   "#E69F00")) +
   scale_shape_manual(name = "Network",
-                       labels = expression(G[T], G[R], G[A]),
+                       labels = expression(G[T], tilde(G)[R], tilde(G)[A]),
                        values = c(15, 17, 16)) +
   scale_x_discrete(labels = dropleadingzero) +
   my_theme() +

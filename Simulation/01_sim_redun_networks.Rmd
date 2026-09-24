@@ -38,8 +38,9 @@ loading = .9
 
 conditions = expand.grid(
   nv = c(10, 20),
-  mn.cor = c(0.1, 0.3, 0.5, 0.7, 0.9),
+  mn.cor = c(0.1, 0.3, 0.5, 0.7),
   clone.loading = c(0.7,.9))
+
 
 
 ncond = nrow(conditions)
@@ -125,6 +126,7 @@ lat.corr = lat.corr.full[1:nv, 1:nv]
 
   randompcor.graph.wo.random =  delete_vertices(randompcor.graph,
                                                 "Random")
+  
 
 ## Centrality metrics 
 
@@ -174,6 +176,12 @@ lat.corr = lat.corr.full[1:nv, 1:nv]
 # Full random network(B)
   local.metrics.random[i,,"Betweenness"] = betweenness(the.g, weights = 1/(abs(E(the.g)$weight)),
                                                         normalized = TRUE)
+  
+vals = betweenness(the.g, weights = 1/(abs(E(the.g)$weight)),normalized = FALSE)
+vals[1:nv] = vals[1:nv]/((nv-1)*(nv-2)/2)
+# Save
+vals[(nv+1):(2*nv + 1)]/(((nv+1) - 1)*((nv+1)-2)/2)
+
 # "Additional" node exclusion in random network(B)
   node.wo.b = betweenness(g.wo.random,
                            normalized = TRUE,
