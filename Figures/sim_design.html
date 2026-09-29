@@ -1,6 +1,6 @@
-<svg width="90%" viewBox="0 0 680 580" role="img" xmlns="http://www.w3.org/2000/svg">
+<svg style="display:block; width:100%; max-height:calc(100vh - 20px)" viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
   <title>Simulation design flowchart</title>
-  <desc>Five-step simulation flowchart: simulate correlation matrix, produce model-implied sigma then subset sigma, invert and standardize both sigma matrices, compute network properties, repeated 500 times</desc>
+  <desc>Six-step simulation flowchart: simulate correlation matrix, produce model-implied sigma then subset sigma, invert and standardize both sigma matrices, steps E and F, repeated 500 times</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -18,6 +18,8 @@
     .d-title { fill: #FFBF00; }
     .e-box   { fill: #022851; stroke: #FFBF00; }
     .e-title { fill: #FFBF00; }
+    .f-box   { fill: #022851; stroke: #FFBF00; }
+    .f-title { fill: #FFBF00; }
     .arr  { stroke: #333333; stroke-width: 1.5; fill: none; }
     .loop { stroke: #333333; stroke-width: 1; fill: none; stroke-dasharray: 5 4; }
     .loop-label { font-size: 12px; fill: #333333; font-family: sans-serif; }
@@ -47,19 +49,26 @@
   <line x1="208" y1="220" x2="505" y2="220" stroke="#333333" stroke-width="1.5" fill="none"/>
   <line class="arr" x1="340" y1="220" x2="340" y2="240" marker-end="url(#arrow)"/>
 
-  <!-- Step D -->
+  <!-- Step D: no dominant-baseline here; y is nudged down 5px to stay centered, and subscript shifts use fixed px so they cancel exactly -->
   <rect class="d-box" x="60" y="240" width="560" height="50" rx="8" stroke-width="0.5"/>
-  <text class="th d-title" x="340" y="265" text-anchor="middle" dominant-baseline="central">D — Invert and standardize both Σ matrices</text>
+  <text class="th d-title" x="340" y="270" text-anchor="middle">D — Invert and standardize Σ matrices to get <tspan font-style="italic">G</tspan><tspan dy="4" font-size="10px" font-style="italic">T</tspan><tspan dy="-4">, </tspan><tspan font-style="italic">G</tspan><tspan dy="4" font-size="10px" font-style="italic">R</tspan><tspan dy="-4">, and </tspan><tspan font-style="italic">G</tspan><tspan dy="4" font-size="10px" font-style="italic">A</tspan></text>
 
   <!-- Arrow D → E -->
   <line class="arr" x1="340" y1="290" x2="340" y2="340" marker-end="url(#arrow)"/>
 
   <!-- Step E -->
-  <rect class="e-box" x="160" y="340" width="360" height="50" rx="8" stroke-width="0.5"/>
-  <text class="th e-title" x="340" y="365" text-anchor="middle" dominant-baseline="central">E — Compute network properties</text>
+  <rect class="e-box" x="60" y="340" width="560" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th e-title" x="340" y="370" text-anchor="middle">E — Remove additional node from <tspan font-style="italic">G</tspan><tspan dy="4" font-size="10px" font-style="italic">R</tspan><tspan dy="-4"> and </tspan><tspan font-style="italic">G</tspan><tspan dy="4" font-size="10px" font-style="italic">A</tspan><tspan dy="-4"> to get </tspan><tspan font-style="italic">G&#x303;</tspan><tspan dy="4" font-size="10px" font-style="italic">R</tspan><tspan dy="-4"> and </tspan><tspan font-style="italic">G&#x303;</tspan><tspan dy="4" font-size="10px" font-style="italic">A</tspan></text>
 
-  <!-- Loop arrow: E back to A -->
-  <path class="loop" d="M160 365 L44 365 L44 55 L60 55" marker-end="url(#arrow)"/>
-  <text class="loop-label" x="36" y="215" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 36 215)">500×</text>
+  <!-- Arrow E → F -->
+  <line class="arr" x1="340" y1="390" x2="340" y2="440" marker-end="url(#arrow)"/>
+
+  <!-- Step F -->
+  <rect class="f-box" x="160" y="440" width="360" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th f-title" x="340" y="465" text-anchor="middle" dominant-baseline="central">F — Compute network properties</text>
+
+  <!-- Loop arrow: F back to A -->
+  <path class="loop" d="M160 465 L44 465 L44 55 L60 55" marker-end="url(#arrow)"/>
+  <text class="loop-label" x="36" y="260" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 36 260)">500×</text>
 
 </svg>
